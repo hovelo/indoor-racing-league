@@ -17,6 +17,9 @@ eleventyComputed:
 	<a class="back" href="/l/{{ event.league.slug }}/">&larr; Standings</a>
 	<h1>{% if event.type == 'qualifier' %}Qualifier{% else %}Event {{ event.number }}{% endif %}</h1>
 	<p class="lede">{{ event.route.name }}{% if event.laps and event.laps > 1 %} &times; {{ event.laps }} laps{% endif %}{% if event.route.world %}, {{ event.route.world }}{% endif %}</p>
+	{%- if event.route.info and event.route.info.url %}
+	<p class="route-info"><a href="{{ event.route.info.url }}" rel="noopener">Route map and profile on {{ event.route.info.name or 'the route guide' }} &rarr;</a></p>
+	{%- endif %}
 </section>
 
 <section class="band">

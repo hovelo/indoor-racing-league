@@ -621,6 +621,11 @@ a:hover {
 	border-radius: var(--radius);
 }
 
+.route-info {
+	text-align: center;
+	margin-top: 0.5rem;
+}
+
 .back {
 	display: inline-block;
 	margin-bottom: 1rem;
