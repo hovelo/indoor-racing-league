@@ -93,7 +93,7 @@ eleventyComputed:
 
 	{%- if event.unbenchmarked | length %}
 	<h3>Not yet benchmarked</h3>
-	<p class="muted">Rode this one but hasn't ridden the qualifier yet, so no points this time:</p>
+	<p class="muted">Rode this one but hasn't ridden the qualifier yet, so can't be ranked. They still get {{ event.unbenchmarked[0].points }} points for taking part:</p>
 	<p><strong>{% for r in event.unbenchmarked %}{{ r.display }}{% if not loop.last %}, {% endif %}{% endfor %}</strong></p>
 	{%- endif %}
 	{%- endif %}

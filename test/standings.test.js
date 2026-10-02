@@ -106,3 +106,17 @@ test('window and duplicates', () => {
 	assert.ok(out.warnings.some((w) => w.includes('outside window')));
 	assert.ok(out.warnings.some((w) => w.includes('duplicate')));
 });
+
+test('unbenchmarked riders get participation points only', () => {
+	const m = [...members, { id: 'd', display: 'Rider D.' }];
+	const l = { ...league, members: ['a', 'b', 'c', 'd'] };
+	const ev = structuredClone(events);
+	ev[1].results.push({ member: 'd', segment: 'lap', time: '26:00', date: '2026-10-21' });
+	const out = computeStandings(l, m, routes, ev);
+	const e1 = out.events[1];
+	assert.equal(e1.results.length, 3);
+	assert.deepEqual(e1.unbenchmarked.map((r) => [r.member, r.points]), [['d', 2]]);
+	assert.equal(out.table.find((r) => r.member === 'd').total, 2);
+	// Ranked riders unaffected
+	assert.equal(e1.results.find((r) => r.member === 'c').points, 17);
+});
