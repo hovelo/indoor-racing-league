@@ -120,3 +120,24 @@ test('unbenchmarked riders get participation points only', () => {
 	// Ranked riders unaffected
 	assert.equal(e1.results.find((r) => r.member === 'c').points, 17);
 });
+
+test('qualifier bonus is per climb and sprint segment', () => {
+	const r = [{ id: 'f8', segments: { lap: {}, kom: {}, kom_rev: { type: 'climb' }, sprint: {}, sprint_rev: { type: 'sprint' } } }];
+	const row = (member, lap, kom, komRev, sprint, sprintRev) => [
+		{ member, segment: 'lap', time: lap, date: '2026-10-07' },
+		{ member, segment: 'kom', time: kom, date: '2026-10-07' },
+		{ member, segment: 'kom_rev', time: komRev, date: '2026-10-07' },
+		{ member, segment: 'sprint', time: sprint, date: '2026-10-07' },
+		{ member, segment: 'sprint_rev', time: sprintRev, date: '2026-10-07' },
+	];
+	const ev = [{
+		id: 'q', league: 'test', type: 'qualifier', route: 'f8',
+		window: { from: '2026-10-05', to: '2026-10-18' },
+		// A wins lap, kom, sprint; C wins kom_rev and sprint_rev
+		results: [...row('a', 2800, 150, 400, 30, 20), ...row('b', 2900, 160, 390, 32, 19), ...row('c', 3000, 170, 380, 34, 18)],
+	}];
+	const out = computeStandings(league, members, r, ev);
+	const bonus = Object.fromEntries(out.events[0].results.map((x) => [x.member, x.bonus]));
+	// A: 3+3+1+3+1 = 11; B: 2+2+2+2+2 = 10; C: 1+1+3+1+3 = 9
+	assert.deepEqual(bonus, { a: 11, b: 10, c: 9 });
+});
