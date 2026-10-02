@@ -1,6 +1,6 @@
 [build]
-  # Clones the private data repo, then builds. DATA_REPO_TOKEN: fine-grained PAT, Contents: read on the data repo only.
-  command = "git clone --depth 1 https://x-access-token:${DATA_REPO_TOKEN}@github.com/hovelo/indoor-racing-league-data.git src/_data/league && npm test && npx @11ty/eleventy"
+  # Clones the private data repo with a read-only deploy key (see scripts/fetch-data.sh), then builds.
+  command = "bash scripts/fetch-data.sh && npm test && npx @11ty/eleventy"
   publish = "_site"
 
 [build.environment]
