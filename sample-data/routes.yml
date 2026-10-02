@@ -1,0 +1,21 @@
+- id: watopia-hilly
+  platform: zwift
+  world: Watopia
+  name: Hilly Route
+  laps_default: 1
+  segments:
+    lap: { name: Hilly Loop, strava_segment_id: null, start_m: null, end_m: null }
+    kom: { name: Hilly KOM, strava_segment_id: null, start_m: null, end_m: null }
+    sprint: { name: JWB Sprint, strava_segment_id: null, start_m: null, end_m: null }
+- id: watopia-figure-8
+  platform: zwift
+  world: Watopia
+  name: Figure 8
+  segments:
+    lap: { name: Figure 8 (full route), strava_segment_id: null }
+- id: watopia-big-flat-8
+  platform: zwift
+  world: Watopia
+  name: Big Flat 8
+  segments:
+    lap: { name: Big Flat 8 (full route), strava_segment_id: null }

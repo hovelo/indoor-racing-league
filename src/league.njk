@@ -1,0 +1,73 @@
+---
+layout: base.njk
+private: true
+pagination:
+  data: standings.leagues
+  size: 1
+  alias: league
+  addAllPagesToCollections: false
+permalink: "/l/{{ league.slug }}/"
+eleventyExcludeFromCollections: true
+eleventyComputed:
+  title: "{{ league.name }}"
+  homeHref: "/l/{{ league.slug }}/"
+  brandSub: "{{ league.name }}"
+---
+<section class="section wrap">
+	<h1>Standings</h1>
+
+	{%- set played = league.eventColumns | length %}
+	{%- if league.table | length %}
+	<div class="table-scroll">
+		<table class="table">
+			<thead>
+				<tr>
+					<th class="place" scope="col"><span class="visually-hidden">Place</span></th>
+					<th scope="col">Rider</th>
+					<th class="num" scope="col" title="Qualifier points">Q</th>
+					{%- for e in league.eventColumns %}
+					<th class="num" scope="col"><a href="/l/{{ league.slug }}/{{ e.id }}/" title="{{ e.route.name }}">E{{ e.number }}</a></th>
+					{%- endfor %}
+					<th class="num" scope="col">Total</th>
+				</tr>
+			</thead>
+			<tbody>
+				{%- for row in league.table %}
+				<tr class="p{{ row.place }}">
+					<td class="place">{{ row.place }}</td>
+					<td class="rider">{{ row.display }}</td>
+					<td class="num">{% if row.qualifier %}{{ row.qualifier }}{% else %}<span class="dim">&ndash;</span>{% endif %}</td>
+					{%- for pts in row.events %}
+					<td class="num">{% if pts !== null %}{{ pts }}{% else %}<span class="dim">&ndash;</span>{% endif %}</td>
+					{%- endfor %}
+					<td class="num total">{{ row.total }}</td>
+				</tr>
+				{%- endfor %}
+			</tbody>
+		</table>
+	</div>
+	<p class="table-note">Q is qualifier points (participation plus bonuses). A dash means not ridden.</p>
+	{%- else %}
+	<p class="empty">No results yet. Ride the qualifier!</p>
+	{%- endif %}
+</section>
+
+<section class="section wrap">
+	<h2>Events</h2>
+	<ul class="events">
+		{%- for e in league.events | reverse %}
+		<li>
+			<a class="event-row" href="/l/{{ league.slug }}/{{ e.id }}/">
+				<span class="event-num">{% if e.type == 'qualifier' %}Q{% else %}{{ e.number }}{% endif %}</span>
+				<span class="event-title">{% if e.type == 'qualifier' %}Qualifier: {% endif %}{{ e.route.name }}{% if e.laps and e.laps > 1 %} &times; {{ e.laps }}{% endif %}</span>
+				<span class="badge badge-{{ e.status }}">{{ e.status }}</span>
+				<span class="event-meta">
+					<span>{{ e.window.from | shortDate }} &ndash; {{ e.window.to | shortDate }}</span>
+					{%- if e.route.world %}<span>{{ e.route.world }}</span>{% endif %}
+					{%- if e.type == 'qualifier' %}<span class="badge badge-qualifier">qualifier</span>{% else %}<span class="badge badge-{{ e.route_type }}">{{ e.route_type }}</span>{% endif %}
+				</span>
+			</a>
+		</li>
+		{%- endfor %}
+	</ul>
+</section>

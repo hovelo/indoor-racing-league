@@ -1,0 +1,12 @@
+id: sample-2026-10-e2
+league: sample-league
+type: event
+route: watopia-big-flat-8
+route_type: flat
+score_segment: lap
+window: { from: 2026-09-28, to: 2026-10-11 }
+results:
+  - { member: meg-g, segment: lap, time: "47:50", date: 2026-09-29 }
+  - { member: tom-c, segment: lap, time: "44:03", date: 2026-10-01 }
+  - { member: kev-b, segment: lap, time: "48:45", date: 2026-09-29 }
+  - { member: ali-r, segment: lap, time: "54:21", date: 2026-10-01 }

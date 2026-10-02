@@ -1,0 +1,97 @@
+---
+layout: base.njk
+private: true
+pagination:
+  data: standings.events
+  size: 1
+  alias: event
+  addAllPagesToCollections: false
+permalink: "/l/{{ event.league.slug }}/{{ event.id }}/"
+eleventyExcludeFromCollections: true
+eleventyComputed:
+  title: "{% if event.type == 'qualifier' %}Qualifier{% else %}Event {{ event.number }}{% endif %}: {{ event.route.name }}"
+  homeHref: "/l/{{ event.league.slug }}/"
+  brandSub: "{{ event.league.name }}"
+---
+<section class="section wrap">
+	<a class="back" href="/l/{{ event.league.slug }}/">&larr; Standings</a>
+	<h1>{% if event.type == 'qualifier' %}Qualifier{% else %}Event {{ event.number }}{% endif %}</h1>
+	<p class="lede">{{ event.route.name }}{% if event.laps and event.laps > 1 %} &times; {{ event.laps }} laps{% endif %}{% if event.route.world %}, {{ event.route.world }}{% endif %}</p>
+</section>
+
+<section class="band">
+	<div class="wrap">
+		<dl class="facts">
+			<div><dt>Window</dt><dd>{{ event.window.from | shortDate }} &ndash; {{ event.window.to | shortDate }}</dd></div>
+			<div><dt>Type</dt><dd>{% if event.type == 'qualifier' %}<span class="badge badge-qualifier">qualifier</span>{% else %}<span class="badge badge-{{ event.route_type }}">{{ event.route_type }}</span>{% endif %}</dd></div>
+			<div><dt>Status</dt><dd><span class="badge badge-{{ event.status }}">{{ event.status }}</span></dd></div>
+			<div><dt>Riders</dt><dd>{{ event.results | length }}</dd></div>
+		</dl>
+	</div>
+</section>
+
+<section class="section wrap">
+	{%- if event.notes %}
+	<div class="notice"><p>{{ event.notes }}</p></div>
+	{%- endif %}
+
+	{%- if event.status == 'open' and event.results | length %}
+	<p class="muted">The window is still open, so these results are provisional.</p>
+	{%- endif %}
+
+	{%- if not event.results | length %}
+	<p class="empty">{% if event.status == 'upcoming' %}Opens {{ event.window.from | shortDate }}. Get your legs ready.{% else %}No results in yet.{% endif %}</p>
+
+	{%- elif event.type == 'qualifier' %}
+	<h2>Riders</h2>
+	<div class="table-scroll">
+		<table class="table">
+			<thead>
+				<tr><th scope="col">Rider</th><th class="num" scope="col">Bonus</th><th class="num" scope="col">Points</th></tr>
+			</thead>
+			<tbody>
+				{%- for r in event.results %}
+				<tr>
+					<td class="rider">{{ r.display }}</td>
+					<td class="num">{% if r.bonus %}+{{ r.bonus }}{% else %}<span class="dim">&ndash;</span>{% endif %}</td>
+					<td class="num total">{{ r.points }}</td>
+				</tr>
+				{%- endfor %}
+			</tbody>
+		</table>
+	</div>
+	<p class="table-note">Everyone who rode gets 2 points. Bonus points went to the three fastest on the full route, the climb and the sprint.</p>
+
+	{%- else %}
+	<h2>Results</h2>
+	<div class="table-scroll">
+		<table class="table">
+			<thead>
+				<tr>
+					<th class="place" scope="col"><span class="visually-hidden">Place</span></th>
+					<th scope="col">Rider</th>
+					<th class="num" scope="col">Adjusted</th>
+					<th class="num" scope="col">Points</th>
+				</tr>
+			</thead>
+			<tbody>
+				{%- for r in event.results %}
+				<tr class="p{{ r.place }}">
+					<td class="place">{{ r.place }}</td>
+					<td class="rider">{{ r.display }}</td>
+					<td class="num">{{ r.adjustedDisplay }}</td>
+					<td class="num total">{{ r.points }}</td>
+				</tr>
+				{%- endfor %}
+			</tbody>
+		</table>
+	</div>
+	<p class="table-note">Adjusted time is your time scaled by your benchmark for a {{ event.route_type }} route. Fastest adjusted time wins.</p>
+
+	{%- if event.unbenchmarked | length %}
+	<h3>Not yet benchmarked</h3>
+	<p class="muted">Rode this one but hasn't ridden the qualifier yet, so no points this time:</p>
+	<p><strong>{% for r in event.unbenchmarked %}{{ r.display }}{% if not loop.last %}, {% endif %}{% endfor %}</strong></p>
+	{%- endif %}
+	{%- endif %}
+</section>

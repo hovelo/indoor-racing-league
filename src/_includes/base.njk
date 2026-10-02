@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>{% if title %}{{ title }} · {% endif %}Hovélo Indoor Racing League</title>
+	{%- if private %}
+	<meta name="robots" content="noindex, nofollow">
+	<meta name="referrer" content="no-referrer">
+	{%- else %}
+	<meta name="description" content="A handicapped, ride-when-you-like indoor racing league on Zwift, run by Hovélo.">
+	{%- endif %}
+	<meta name="theme-color" content="#ffffff">
+	<link rel="icon" href="/images/hovelo-logo.svg" type="image/svg+xml">
+	<link rel="preload" href="/fonts/pacifico-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+	<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+	<header class="site-header wrap">
+		<a class="brand" href="{% if private %}{{ homeHref or '/' }}{% else %}/{% endif %}">
+			<img src="/images/hovelo-logo.svg" alt="Hovélo" width="96" height="96">
+			<span>
+				<span class="brand-name">Indoor Racing League</span>
+				<span class="brand-sub">{{ brandSub or "Handicapped virtual racing from Hovélo" }}</span>
+			</span>
+		</a>
+	</header>
+
+	<main>
+		{{ content | safe }}
+	</main>
+
+	<footer class="site-footer">
+		<p>Run by <a href="{{ site.hovelo }}">Hovélo</a>, a friendly bunch of riders from Hove.</p>
+		<p><a href="{{ site.strava }}">Strava</a> &middot; <a href="{{ site.whatsapp }}">WhatsApp</a></p>
+		{%- if standings.usingSample %}
+		<p class="small muted">Built from sample data.</p>
+		{%- endif %}
+	</footer>
+</body>
+</html>

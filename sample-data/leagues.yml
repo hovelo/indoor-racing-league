@@ -1,0 +1,10 @@
+# SAMPLE DATA — fake riders, for working on the site without the private repo.
+- id: sample-league
+  slug: sample-x7q2m9k4
+  name: Sample handicap league
+  platform: zwift
+  target_minutes: [40, 60]
+  qualifier: sample-2026-09-qualifier
+  members: [tom-c, meg-g, jon-a, sam-p, ali-r, kev-b, liz-h, dan-w]
+  settings:
+    drop_worst: 0

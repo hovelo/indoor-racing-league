@@ -1,0 +1,4 @@
+node_modules/
+_site/
+src/_data/league/
+.DS_Store

@@ -1,0 +1,10 @@
+id: sample-2026-10-e3
+league: sample-league
+type: event
+route: watopia-hilly
+laps: 3
+route_type: rolling
+score_segment: lap
+window: { from: 2026-10-12, to: 2026-10-25 }
+notes: Three laps of the Hilly Route. Score segment is your fastest lap.
+results: []
