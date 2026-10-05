@@ -63,7 +63,7 @@ eleventyComputed:
 			</tbody>
 		</table>
 	</div>
-	<p class="table-note">Everyone who rode gets 2 points. Bonus points went to the three fastest on the full route, each climb and each of the sprints.</p>
+	<p class="table-note">Everyone who rode gets {{ event.participation }} points, plus bonus points for being among the fastest on each of the segments below.</p>
 
 	{%- else %}
 	<h2>Results</h2>
@@ -74,6 +74,7 @@ eleventyComputed:
 					<th class="place" scope="col"><span class="visually-hidden">Place</span></th>
 					<th scope="col">Rider</th>
 					<th class="num" scope="col">Adjusted</th>
+					{%- if event.segments | length %}<th class="num" scope="col">Bonus</th>{% endif %}
 					<th class="num" scope="col">Points</th>
 				</tr>
 			</thead>
@@ -83,18 +84,52 @@ eleventyComputed:
 					<td class="place">{{ r.place }}</td>
 					<td class="rider">{{ r.display }}</td>
 					<td class="num">{{ r.adjustedDisplay }}</td>
+					{%- if event.segments | length %}<td class="num">{% if r.bonus %}+{{ r.bonus }}{% else %}<span class="dim">&ndash;</span>{% endif %}</td>{% endif %}
 					<td class="num total">{{ r.points }}</td>
 				</tr>
 				{%- endfor %}
 			</tbody>
 		</table>
 	</div>
-	<p class="table-note">Adjusted time is your time scaled by your benchmark for a {{ event.route_type }} route. Fastest adjusted time wins.</p>
+	<p class="table-note">Adjusted time is your time scaled by your benchmark for a {{ event.route_type }} route. Fastest adjusted time wins.{% if event.segments | length %} Bonus points come from the segments below.{% endif %}</p>
 
 	{%- if event.unbenchmarked | length %}
 	<h3>Not yet benchmarked</h3>
-	<p class="muted">Rode this one but hasn't ridden the qualifier yet, so can't be ranked. They still get {{ event.unbenchmarked[0].points }} points for taking part:</p>
-	<p><strong>{% for r in event.unbenchmarked %}{{ r.display }}{% if not loop.last %}, {% endif %}{% endfor %}</strong></p>
+	<p class="muted">Rode this one but hasn't ridden the qualifier yet, so can't be ranked. They still get {{ event.participation }} points for taking part, plus any segment bonus:</p>
+	<p><strong>{% for r in event.unbenchmarked %}{{ r.display }}{% if r.bonus %} ({{ r.points }}){% endif %}{% if not loop.last %}, {% endif %}{% endfor %}</strong></p>
 	{%- endif %}
+	{%- endif %}
+
+	{%- if event.segments | length and event.results | length %}
+	<h2>Segments</h2>
+	<p class="muted">Bonus points on {% if event.segments.length == 1 %}this segment{% else %}each of these {{ event.segments.length }} segments{% endif %}: {{ event.segmentBonus | join(", ") }} for the fastest raw times. Only efforts from a full ride of the route count.</p>
+	<div class="segments">
+		{%- for seg in event.segments %}
+		<div class="segment">
+			<h3>
+				{%- if seg.url %}<a href="{{ seg.url }}" rel="noopener">{{ seg.name }}</a>{% else %}{{ seg.name }}{% endif %}
+				{%- if seg.type == 'climb' or seg.type == 'sprint' %} <span class="badge badge-seg-{{ seg.type }}">{{ seg.type }}</span>{% endif %}
+			</h3>
+			{%- if seg.results | length %}
+			<table class="table table-compact">
+				<thead>
+					<tr><th class="place" scope="col"><span class="visually-hidden">Place</span></th><th scope="col">Rider</th><th class="num" scope="col">Points</th></tr>
+				</thead>
+				<tbody>
+					{%- for r in seg.results %}
+					<tr class="p{{ r.place }}">
+						<td class="place">{{ r.place }}</td>
+						<td class="rider">{{ r.display }}</td>
+						<td class="num total">{% if r.points %}+{{ r.points }}{% else %}<span class="dim">&ndash;</span>{% endif %}</td>
+					</tr>
+					{%- endfor %}
+				</tbody>
+			</table>
+			{%- else %}
+			<p class="empty">No efforts yet.</p>
+			{%- endif %}
+		</div>
+		{%- endfor %}
+	</div>
 	{%- endif %}
 </section>

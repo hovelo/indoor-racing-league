@@ -444,6 +444,8 @@ a:hover {
 .badge-rolling { background: var(--turquoise-tint); color: #1d6e5b; }
 .badge-climbing { background: var(--red-tint); color: #a51c31; }
 .badge-qualifier { background: var(--ink); color: var(--white); }
+.badge-seg-climb { background: var(--red-tint); color: #a51c31; }
+.badge-seg-sprint { background: var(--blue-tint); color: var(--blue-dark); }
 
 .badge-open { background: var(--turquoise); color: var(--white); }
 .badge-upcoming { background: none; color: var(--blue); box-shadow: inset 0 0 0 0.1rem currentColor; }
@@ -517,6 +519,35 @@ a:hover {
 	color: var(--muted);
 	margin-top: -0.75rem;
 }
+
+/* ---------- Bonus segments ---------- */
+
+.segments {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+	gap: 1rem 2rem;
+}
+
+.segment h3 {
+	margin-bottom: 0.25rem;
+}
+
+.segment h3 a {
+	text-decoration-thickness: 0.08em;
+}
+
+.table-compact th,
+.table-compact td {
+	padding: 0.4rem 0.5rem;
+}
+
+.table-compact .place {
+	font-size: 1.1rem;
+}
+
+.table-compact tr.p1 .place { font-size: 1.3rem; }
+.table-compact tr.p2 .place { font-size: 1.2rem; }
+.table-compact tr.p3 .place { font-size: 1.15rem; }
 
 /* ---------- Event list ---------- */
 

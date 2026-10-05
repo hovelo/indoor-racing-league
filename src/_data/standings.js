@@ -58,6 +58,8 @@ module.exports = function () {
 			status: status(e.window, today),
 			number: e.type === 'qualifier' ? null : result.events.slice(0, i + 1).filter((x) => x.type !== 'qualifier').length,
 			league: { slug: league.slug, name: league.name },
+			participation: result.settings.points.participation,
+			segmentBonus: result.settings.segment_bonus,
 			// Strip internal fields so nothing raw can reach a template.
 			results: e.results.map(({ _raw, _blended, ...r }) => r),
 		}));

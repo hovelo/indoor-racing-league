@@ -5,6 +5,7 @@ route: watopia-hilly
 laps: 3
 route_type: rolling
 score_segment: lap
+bonus_segments: [kom, sprint]
 window: { from: 2026-10-12, to: 2026-10-25 }
 notes: Three laps of the Hilly Route. Score segment is your fastest lap.
 results: []

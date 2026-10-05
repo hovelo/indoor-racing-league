@@ -86,12 +86,13 @@ test('worked example', () => {
 	near(out.benchmarks.c.flat, 1.1106, 4);
 	near(out.benchmarks.c.sprint, 1.1237, 4);
 
-	// Qualifier: A fastest everywhere -> 2 + 9; B -> 2 + 6; C -> 2 + 3
+	// Qualifier bonus on the climb and sprint only (not the full route):
+	// A fastest on both -> 2 + 6; B -> 2 + 4; C -> 2 + 2
 	const qual = Object.fromEntries(out.events[0].results.map((r) => [r.member, r.points]));
-	assert.deepEqual(qual, { a: 11, b: 8, c: 5 });
+	assert.deepEqual(qual, { a: 8, b: 6, c: 4 });
 
 	const table = Object.fromEntries(out.table.map((r) => [r.member, r.total]));
-	assert.deepEqual(table, { a: 27, b: 23, c: 22 });
+	assert.deepEqual(table, { a: 24, b: 21, c: 21 });
 });
 
 test('window and duplicates', () => {
@@ -138,6 +139,71 @@ test('qualifier bonus is per climb and sprint segment', () => {
 	}];
 	const out = computeStandings(league, members, r, ev);
 	const bonus = Object.fromEntries(out.events[0].results.map((x) => [x.member, x.bonus]));
-	// A: 3+3+1+3+1 = 11; B: 2+2+2+2+2 = 10; C: 1+1+3+1+3 = 9
-	assert.deepEqual(bonus, { a: 11, b: 10, c: 9 });
+	// Two KOMs and two sprints, no full-route bonus.
+	// A: 3+1+3+1 = 8; B: 2+2+2+2 = 8; C: 1+3+1+3 = 8
+	assert.deepEqual(bonus, { a: 8, b: 8, c: 8 });
+	assert.deepEqual(out.events[0].segments.map((x) => x.key), ['kom', 'kom_rev', 'sprint', 'sprint_rev']);
+
+	// An explicit list overrides the default, e.g. to put the full route back in.
+	ev[0].bonus_segments = ['lap', 'kom'];
+	const out2 = computeStandings(league, members, r, ev);
+	const bonus2 = Object.fromEntries(out2.events[0].results.map((x) => [x.member, x.bonus]));
+	assert.deepEqual(bonus2, { a: 6, b: 4, c: 2 });
+});
+
+test('normal events score their designated segments', () => {
+	const r = [{
+		id: 'hilly',
+		segments: {
+			lap: { name: 'Hilly Loop' },
+			kom: { name: 'Hilly KOM', strava_segment_id: 12109030 },
+			sprint: { name: 'JWB Sprint' },
+		},
+	}];
+	const m = [...members, { id: 'd', display: 'Rider D.' }];
+	const l = { ...league, members: ['a', 'b', 'c', 'd'] };
+	const ev = structuredClone(events);
+	ev[1].bonus_segments = ['kom', 'nope'];
+	ev[1].results.push(
+		{ member: 'a', segment: 'kom', time: '2:40', date: '2026-10-20' },
+		{ member: 'b', segment: 'kom', time: '2:30', date: '2026-10-20' },
+		{ member: 'c', segment: 'kom', time: '2:30', date: '2026-10-20' }, // ties B
+		{ member: 'c', segment: 'sprint', time: '0:20', date: '2026-10-20' }, // not designated
+		{ member: 'd', segment: 'lap', time: '26:00', date: '2026-10-21' }, // unbenchmarked
+		{ member: 'd', segment: 'kom', time: '2:35', date: '2026-10-21' }
+	);
+	const out = computeStandings(l, m, r, ev);
+	const e1 = out.events[1];
+
+	assert.equal(e1.segments.length, 1);
+	const kom = e1.segments[0];
+	assert.equal(kom.name, 'Hilly KOM');
+	assert.equal(kom.url, 'https://www.strava.com/segments/12109030');
+	// B and C tie for 1st (3 each), D 3rd place (1), A 4th (0)
+	assert.deepEqual(kom.results.map((x) => [x.member, x.place, x.points]), [
+		['b', 1, 3], ['c', 1, 3], ['d', 3, 1], ['a', 4, 0],
+	]);
+	assert.ok(!('time' in kom.results[0]));
+
+	const byId = Object.fromEntries(e1.results.map((x) => [x.member, x]));
+	assert.equal(byId.c.points, 17 + 3);
+	assert.equal(byId.b.points, 15 + 3);
+	assert.equal(byId.a.points, 16);
+	assert.deepEqual(e1.unbenchmarked.map((x) => [x.member, x.points]), [['d', 3]]);
+	assert.ok(out.warnings.some((w) => w.includes('"nope"')));
+});
+
+test('a segment effort without a full-route time earns nothing', () => {
+	const ev = structuredClone(events);
+	ev[1].bonus_segments = ['kom'];
+	ev[1].results = ev[1].results.filter((x) => x.member !== 'a');
+	ev[1].results.push({ member: 'a', segment: 'kom', time: '1:00', date: '2026-10-20' });
+	const out = computeStandings(league, members, routes, ev);
+	assert.deepEqual(out.events[1].segments[0].results, []);
+});
+
+test('legacy qualifier_bonus setting still applies', () => {
+	const l = { ...league, settings: { qualifier_bonus: [5, 0, 0] } };
+	const out = computeStandings(l, members, routes, events);
+	assert.equal(out.events[0].results.find((x) => x.member === 'a').bonus, 10);
 });

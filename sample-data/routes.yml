@@ -1,3 +1,6 @@
+# Segment names should match Strava exactly; strava_segment_id makes them link.
+# IDs below are from Zwift Insider's segment pages — verify on Strava before
+# copying into the real routes.yml.
 - id: watopia-hilly
   platform: zwift
   world: Watopia
@@ -6,15 +9,19 @@
   laps_default: 1
   segments:
     lap: { name: Hilly Loop, strava_segment_id: null, start_m: null, end_m: null }
-    kom: { name: Hilly KOM, strava_segment_id: null, start_m: null, end_m: null }
-    sprint: { name: JWB Sprint, strava_segment_id: null, start_m: null, end_m: null }
+    kom: { name: Hilly KOM, strava_segment_id: 12109030, start_m: null, end_m: null }
+    sprint: { name: JWB Sprint, strava_segment_id: 12109305, start_m: null, end_m: null }
 - id: watopia-figure-8
   platform: zwift
   world: Watopia
   name: Figure 8
   info: { name: Zwift Insider, url: "https://zwiftinsider.com/route/figure-8/" }
   segments:
-    lap: { name: Figure 8 (full route), strava_segment_id: null }
+    lap: { name: Figure 8 (full route), strava_segment_id: 12118421 }
+    kom_rev: { name: Hilly KOM Reverse, type: climb, strava_segment_id: 12128029 }
+    sprint_rev: { name: JWB Sprint Reverse, type: sprint, strava_segment_id: null }
+    kom: { name: Hilly KOM, strava_segment_id: 12109030 }
+    sprint: { name: JWB Sprint, strava_segment_id: 12109305 }
 - id: watopia-big-flat-8
   platform: zwift
   world: Watopia

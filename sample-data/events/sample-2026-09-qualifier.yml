@@ -1,28 +1,42 @@
 id: sample-2026-09-qualifier
 league: sample-league
 type: qualifier
-route: watopia-hilly
-laps: 1
+route: watopia-figure-8
 window: { from: 2026-08-31, to: 2026-09-13 }
+# No bonus_segments: a qualifier defaults to every climb and sprint on the route.
 results:
-  - { member: tom-c, segment: lap, time: "14:45", date: 2026-09-02 }
+  - { member: tom-c, segment: lap, time: "43:10", date: 2026-09-02 }
+  - { member: tom-c, segment: kom_rev, time: "5:02", date: 2026-09-02 }
+  - { member: tom-c, segment: sprint_rev, time: "0:17", date: 2026-09-02 }
   - { member: tom-c, segment: kom, time: "2:24", date: 2026-09-02 }
   - { member: tom-c, segment: sprint, time: "0:30", date: 2026-09-02 }
-  - { member: meg-g, segment: lap, time: "15:57", date: 2026-09-03 }
+  - { member: meg-g, segment: lap, time: "46:40", date: 2026-09-03 }
+  - { member: meg-g, segment: kom_rev, time: "5:20", date: 2026-09-03 }
+  - { member: meg-g, segment: sprint_rev, time: "0:18", date: 2026-09-03 }
   - { member: meg-g, segment: kom, time: "2:34", date: 2026-09-03 }
   - { member: meg-g, segment: sprint, time: "0:32", date: 2026-09-03 }
-  - { member: jon-a, segment: lap, time: "15:44", date: 2026-09-04 }
+  - { member: jon-a, segment: lap, time: "46:05", date: 2026-09-04 }
+  - { member: jon-a, segment: kom_rev, time: "5:51", date: 2026-09-04 }
+  - { member: jon-a, segment: sprint_rev, time: "0:17", date: 2026-09-04 }
   - { member: jon-a, segment: kom, time: "3:02", date: 2026-09-04 }
   - { member: jon-a, segment: sprint, time: "0:31", date: 2026-09-04 }
-  - { member: sam-p, segment: lap, time: "15:45", date: 2026-09-05 }
+  - { member: sam-p, segment: lap, time: "46:10", date: 2026-09-05 }
+  - { member: sam-p, segment: kom_rev, time: "5:30", date: 2026-09-05 }
+  - { member: sam-p, segment: sprint_rev, time: "0:19", date: 2026-09-05 }
   - { member: sam-p, segment: kom, time: "2:45", date: 2026-09-05 }
   - { member: sam-p, segment: sprint, time: "0:33", date: 2026-09-05 }
-  - { member: ali-r, segment: lap, time: "18:15", date: 2026-09-06 }
+  - { member: ali-r, segment: lap, time: "53:30", date: 2026-09-06 }
+  - { member: ali-r, segment: kom_rev, time: "6:30", date: 2026-09-06 }
+  - { member: ali-r, segment: sprint_rev, time: "0:20", date: 2026-09-06 }
   - { member: ali-r, segment: kom, time: "3:17", date: 2026-09-06 }
   - { member: ali-r, segment: sprint, time: "0:36", date: 2026-09-06 }
-  - { member: kev-b, segment: lap, time: "16:45", date: 2026-09-07 }
+  - { member: kev-b, segment: lap, time: "49:00", date: 2026-09-07 }
+  - { member: kev-b, segment: kom_rev, time: "5:12", date: 2026-09-07 }
+  - { member: kev-b, segment: sprint_rev, time: "0:20", date: 2026-09-07 }
   - { member: kev-b, segment: kom, time: "2:30", date: 2026-09-07 }
   - { member: kev-b, segment: sprint, time: "0:35", date: 2026-09-07 }
-  - { member: liz-h, segment: lap, time: "17:38", date: 2026-09-08 }
+  - { member: liz-h, segment: lap, time: "51:40", date: 2026-09-08 }
+  - { member: liz-h, segment: kom_rev, time: "5:44", date: 2026-09-08 }
+  - { member: liz-h, segment: sprint_rev, time: "0:18", date: 2026-09-08 }
   - { member: liz-h, segment: kom, time: "2:54", date: 2026-09-08 }
   - { member: liz-h, segment: sprint, time: "0:32", date: 2026-09-08 }
