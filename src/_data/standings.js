@@ -3,7 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const yaml = require('js-yaml');
-const { computeStandings } = require('../../lib/model');
+const { computeStandings, formatTime, WEIGHTS } = require('../../lib/model');
 
 const PRIVATE_DIR = path.join(__dirname, 'league');
 const SAMPLE_DIR = path.join(__dirname, '..', '..', 'sample-data');
@@ -34,6 +34,17 @@ function status(window, today) {
 	return 'open';
 }
 
+function daysBetween(fromIso, toIso) {
+	return Math.round((new Date(`${toIso}T00:00:00Z`) - new Date(`${fromIso}T00:00:00Z`)) / 86400000);
+}
+
+// Flag rows that share a place with another row, so templates can show "=2".
+function markTies(rows) {
+	const counts = new Map();
+	rows.forEach((r) => counts.set(r.place, (counts.get(r.place) || 0) + 1));
+	return rows.map((r) => ({ ...r, tied: counts.get(r.place) > 1 }));
+}
+
 module.exports = function () {
 	const usingSample = !fs.existsSync(path.join(PRIVATE_DIR, 'leagues.yml'));
 	const dir = usingSample ? SAMPLE_DIR : PRIVATE_DIR;
@@ -53,25 +64,42 @@ module.exports = function () {
 		const result = computeStandings(league, members, routes, events);
 		result.warnings.forEach((w) => console.warn(`[standings] ${w}`));
 
-		const leagueEvents = result.events.map((e, i) => ({
-			...e,
-			status: status(e.window, today),
-			number: e.type === 'qualifier' ? null : result.events.slice(0, i + 1).filter((x) => x.type !== 'qualifier').length,
-			league: { slug: league.slug, name: league.name },
-			participation: result.settings.points.participation,
-			segmentBonus: result.settings.segment_bonus,
+		const leagueEvents = result.events.map((e, i) => {
 			// Strip internal fields so nothing raw can reach a template.
-			results: e.results.map(({ _raw, _blended, ...r }) => r),
-		}));
+			const results = markTies(e.results.map(({ _raw, _blended, ...r }) => r));
+			const leader = results.length ? results[0].adjusted : null;
+			results.forEach((r) => {
+				r.gapDisplay = r.adjusted - leader >= 0.5 ? `+${formatTime(r.adjusted - leader)}` : null;
+			});
+			return {
+				...e,
+				status: status(e.window, today),
+				daysLeft: daysBetween(today, e.window.to) + 1,
+				number: e.type === 'qualifier' ? null : result.events.slice(0, i + 1).filter((x) => x.type !== 'qualifier').length,
+				league: { slug: league.slug, name: league.name },
+				participation: result.settings.points.participation,
+				segmentBonus: result.settings.segment_bonus,
+				weights: e.route_type ? WEIGHTS[e.route_type] : null,
+				results,
+				segments: e.segments.map((s) => ({ ...s, results: markTies(s.results) })),
+			};
+		});
 
+		const normal = leagueEvents.filter((e) => e.type !== 'qualifier');
+		const closed = normal.filter((e) => e.status === 'closed');
 		out.leagues.push({
 			slug: league.slug,
 			name: league.name,
 			platform: league.platform,
 			target_minutes: league.target_minutes,
-			table: result.table,
+			riders: (league.members || []).length,
+			table: markTies(result.table),
 			events: leagueEvents,
-			eventColumns: leagueEvents.filter((e) => e.type !== 'qualifier'),
+			eventColumns: normal,
+			eventsDone: closed.length,
+			lastClosed: closed.length ? closed[closed.length - 1] : null,
+			current: leagueEvents.find((e) => e.status === 'open') || null,
+			next: leagueEvents.find((e) => e.status === 'upcoming') || null,
 		});
 		out.events.push(...leagueEvents);
 	}

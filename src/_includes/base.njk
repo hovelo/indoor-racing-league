@@ -3,27 +3,27 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>{% if title %}{{ title }} · {% endif %}Hovélo Indoor Racing League</title>
+	<title>{% if title %}{{ title }} · {% endif %}{{ site.name }}</title>
 	{%- if private %}
 	<meta name="robots" content="noindex, nofollow">
 	<meta name="referrer" content="no-referrer">
 	{%- else %}
-	<meta name="description" content="A handicapped, ride-when-you-like indoor racing league on Zwift, run by Hovélo.">
+	<meta name="description" content="A handicapped, ride-when-you-like indoor racing league on Zwift.">
 	{%- endif %}
-	<meta name="theme-color" content="#ffffff">
-	<link rel="icon" href="/images/hovelo-logo.svg" type="image/svg+xml">
-	<link rel="preload" href="/fonts/pacifico-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+	<meta name="theme-color" content="#14171c">
+	<link rel="icon" href="/images/favicon.svg" type="image/svg+xml">
+	<link rel="preload" href="/fonts/barlow-condensed-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin>
 	<link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-	<header class="site-header wrap">
-		<a class="brand" href="{% if private %}{{ homeHref or '/' }}{% else %}/{% endif %}">
-			<img src="/images/hovelo-logo.svg" alt="Hovélo" width="96" height="96">
-			<span>
-				<span class="brand-name">Indoor Racing League</span>
-				<span class="brand-sub">{{ brandSub or "Handicapped virtual racing from Hovélo" }}</span>
-			</span>
-		</a>
+	<header class="site-header">
+		<div class="wrap site-header-inner">
+			<a class="brand" href="{% if private %}{{ homeHref or '/' }}{% else %}/{% endif %}">
+				<span class="brand-mark" aria-hidden="true">IRL</span>
+				<span class="brand-name">{{ site.name }}</span>
+			</a>
+			<a class="button button-ghost" href="mailto:{{ site.email }}">Get involved</a>
+		</div>
 	</header>
 
 	<main>
@@ -31,11 +31,12 @@
 	</main>
 
 	<footer class="site-footer">
-		<p>Run by <a href="{{ site.hovelo }}">Hovélo</a>, a friendly bunch of riders from Hove.</p>
-		<p><a href="{{ site.strava }}">Strava</a> &middot; <a href="{{ site.whatsapp }}">WhatsApp</a></p>
-		{%- if standings.usingSample %}
-		<p class="small muted">Built from sample data.</p>
-		{%- endif %}
+		<div class="wrap site-footer-inner">
+			<p>Made by <a href="https://www.mikestreety.co.uk/">Mike Street</a>.</p>
+			{%- if standings.usingSample %}
+			<p>Built from sample data.</p>
+			{%- endif %}
+		</div>
 	</footer>
 </body>
 </html>

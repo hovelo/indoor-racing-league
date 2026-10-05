@@ -1,6 +1,6 @@
-# Hovélo Indoor Racing League
+# Indoor Racing League
 
-A handicapped, asynchronous virtual cycling league, run by [Hovélo](https://hovelo.co.uk/). Static 11ty site, scored at build time.
+A handicapped, asynchronous virtual cycling league. Static 11ty site, scored at build time.
 
 ## Development
 
@@ -22,4 +22,11 @@ To build with real data, clone the private data repo into `src/_data/league/` (g
 
 ## Design
 
-Takes its look from hovelo.co.uk: Pacifico headings (turquoise `#2ea287` for page titles, red `#db2a44` for section titles), Helvetica body in dark blue `#0c2d3c`, blue `#017db3` links and buttons, `#c5d4df` rules, `#eaf0f3` feature bands, and the turquoise-over-red stripe at the top. The logo in `src/images/` is Hovélo's own. Pacifico is self-hosted from `@fontsource/pacifico`.
+A "timing screen" look, independent of any club branding:
+
+- Ink (`#14171c`) header, hero and footer over a pale ground (`#eef0eb`), white panels, one lime accent (`#d4f53c`, `--accent` in `src/css/style.css`).
+- Barlow Condensed (uppercase) for headings and place numbers, Instrument Sans for body, JetBrains Mono for every time and points figure. All self-hosted from `@fontsource/*`, latin subset only.
+- Route types: flat blue, rolling teal, climbing rust. Top three places get skewed "race number" blocks.
+- Mobile first: breakpoints at 40rem and 64rem. On phones the event results table hides the points breakdown (gap, place, finish, bonus); the standings table scrolls sideways.
+
+Routes can carry optional `distance_km` and `elevation_m` in `routes.yml`; they're shown on event pages and the events list.

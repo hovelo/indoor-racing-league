@@ -3,9 +3,9 @@ layout: base.njk
 ---
 <section class="section wrap">
 	<h1>Race when you like</h1>
-	<p class="lede">The Indoor Racing League is a handicapped Zwift league for Hovélo riders and friends. No start times, no pack racing &mdash; just ride the route whenever suits you, and your time is adjusted for your ability, so anyone can win.</p>
+	<p class="lede">The Indoor Racing League is a handicapped Zwift league for groups of friends. No start times, no pack racing &mdash; just ride the route whenever suits you, and your time is adjusted for your ability, so anyone can win.</p>
 	<div class="actions">
-		<a class="button" href="#join">Get involved</a>
+		<a class="button" href="mailto:{{ site.email }}">Get involved</a>
 		<a class="button button-outline" href="#how">How it works</a>
 	</div>
 </section>
@@ -43,48 +43,48 @@ layout: base.njk
 </section>
 
 <section class="section wrap">
-	<h2>Points</h2>
-	<div class="grid grid-2">
-		<div>
+	<div class="section-head">
+		<h2>Points</h2>
+		<p class="section-note">The gaps are deliberately small. Turning up always matters.</p>
+	</div>
+	<div class="points">
+		<div class="panel points-card">
 			<h3>Events</h3>
-			<ul>
-				<li>15 points for the fastest adjusted time, then one fewer per place (never less than 1)</li>
-				<li>Plus 2 points every time you finish</li>
-				<li>Tied riders share the higher place</li>
+			<ul class="points-list">
+				<li><span class="points-value">15</span><span>for the fastest adjusted time, then one fewer per place, never less than 1</span></li>
+				<li><span class="points-value">+2</span><span>every time you finish</span></li>
+				<li><span class="points-value">=</span><span>tied riders share the higher place</span></li>
 			</ul>
 		</div>
-		<div>
+		<div class="panel points-card">
 			<h3>Qualifier</h3>
-			<ul>
-				<li>2 points for riding it</li>
-				<li>Bonus 3, 2 and 1 points for the three fastest riders on the full route, each climb and each of the sprints</li>
+			<ul class="points-list">
+				<li><span class="points-value">+2</span><span>for riding it</span></li>
+				<li><span class="points-value">3·2·1</span><span>bonus for the three fastest riders on each climb and sprint</span></li>
 			</ul>
 		</div>
 	</div>
-	<p class="muted">The gaps between places are deliberately small. Turning up always matters.</p>
 </section>
 
 <section class="section wrap">
-	<h2>The rules</h2>
-	<ol>
-		<li><strong>Ride solo.</strong> No group rides, races or events &mdash; drafting breaks the handicap.</li>
-		<li><strong>Ride the set route, flat out, within the window.</strong> Your best effort counts.</li>
-		<li><strong>Keep Zwift's Strava sync switched on</strong> and check your first league ride appears.</li>
-		<li><strong>Join the <a href="{{ site.strava }}">Hovélo Strava club</a></strong> so you show up on the leaderboard.</li>
-		<li><strong>Don't set rides to "Only You"</strong>, or they won't appear on segment leaderboards.</li>
-		<li><strong>Use an honest weight and height in Zwift</strong>, and a smart trainer or power meter if you can.</li>
+	<div class="section-head">
+		<h2>The rules</h2>
+		<p class="section-note">Only initials, adjusted times and points are ever shown.</p>
+	</div>
+	<ol class="rules">
+		<li class="panel"><strong>Ride solo</strong> No group rides, races or events. Drafting breaks the handicap.</li>
+		<li class="panel"><strong>Ride the set route</strong> Flat out, within the window. Your best effort counts.</li>
+		<li class="panel"><strong>Keep Strava sync on</strong> Leave Zwift's Strava sync switched on, and check your first league ride appears.</li>
+		<li class="panel"><strong>Join the Strava club</strong> Your league's club, so you show up on the leaderboard.</li>
+		<li class="panel"><strong>Not "Only You"</strong> Private rides don't appear on segment leaderboards.</li>
+		<li class="panel"><strong>Be honest</strong> Real weight and height in Zwift, and a smart trainer or power meter if you can.</li>
 	</ol>
-	<p class="muted">Only initials, adjusted times and points are ever shown. Your raw times stay private.</p>
 </section>
 
-<section class="band" id="join">
-	<div class="wrap">
+<section class="cta" id="join">
+	<div class="wrap cta-inner">
 		<h2>Get involved</h2>
-		<p class="lede">Fancy it? Join the Hovélo Strava club and WhatsApp community, then shout in WhatsApp that you're in. We'll send you the qualifier details.</p>
-		<div class="actions">
-			<a class="button button-strava" href="{{ site.strava }}">Join the Strava club</a>
-			<a class="button button-whatsapp" href="{{ site.whatsapp }}">Join the WhatsApp community</a>
-		</div>
-		<p class="muted small" style="text-align:center;margin-top:1.5rem">You need to be in the Strava club to show up on the leaderboards.</p>
+		<p>Fancy it, or want to run a league for your own group? Drop an email and we'll send you the qualifier details.</p>
+		<a class="button" href="mailto:{{ site.email }}">Send an email</a>
 	</div>
 </section>
