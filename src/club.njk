@@ -1,0 +1,48 @@
+---
+layout: base.njk
+pagination:
+  data: standings.clubs
+  size: 1
+  alias: clubPage
+  addAllPagesToCollections: false
+permalink: "{{ clubPage.page }}"
+eleventyExcludeFromCollections: true
+eleventyComputed:
+  title: "{{ clubPage.name }}"
+---
+{%- from "macros.njk" import clubLogo, stravaClubButton -%}
+<section class="hero hero-club-page">
+	<div class="wrap">
+		<div class="club-hero">
+			{{ clubLogo(clubPage, 'xl') }}
+			<div class="club-hero-main">
+				<p class="kicker">Club</p>
+				<h1 class="display">{{ clubPage.name }}</h1>
+				{%- if clubPage.description %}
+				<p class="club-hero-lede">{{ clubPage.description }}</p>
+				{%- endif %}
+				{%- if clubPage.strava or clubPage.url %}
+				<p class="hero-actions">
+					{{ stravaClubButton(clubPage) }}
+					{%- if clubPage.url %}
+					<a class="button button-ghost" href="{{ clubPage.url }}" rel="noopener">{{ clubPage.url | domain }} <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg></a>
+					{%- endif %}
+				</p>
+				{%- endif %}
+			</div>
+		</div>
+	</div>
+</section>
+
+<div class="wrap">
+	<section class="section">
+		<div class="section-head">
+			<h2>Riding with {{ clubPage.name }}</h2>
+		</div>
+		<ol class="rules">
+			<li class="panel"><strong>Join the Strava club</strong> <span>{% if clubPage.strava %}<a href="{{ clubPage.strava }}" rel="noopener">{{ clubPage.name }} on Strava</a>. {% endif %}Results are read from the club's leaderboards, so you only appear if you're a member.</span></li>
+			<li class="panel"><strong>Keep Strava sync on</strong> And don't set your rides to &ldquo;Only You&rdquo;, or they won't show up.</li>
+			<li class="panel"><strong>Ride the qualifier</strong> It sets your predicted time, so you can be scored against yourself rather than the fastest rider.</li>
+		</ol>
+	</section>
+</div>

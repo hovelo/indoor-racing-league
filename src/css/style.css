@@ -354,3 +354,40 @@ main:has(> .cta:last-child) + .site-footer { margin-top: 0; }
 	.event-row .badge { min-width: 0; }
 	.event-tags { gap: 0.5rem; }
 }
+
+/* Clubs */
+.club-logo { display: inline-grid; place-items: center; flex: none; object-fit: contain; background: var(--panel); border-radius: 50%; }
+.club-logo-sm { width: 1.75rem; height: 1.75rem; }
+.club-logo-md { width: 2.75rem; height: 2.75rem; }
+.club-logo-lg { width: 3.5rem; height: 3.5rem; }
+.club-monogram { background: var(--accent); color: var(--ink); font: 800 1.125rem/1 var(--display); text-transform: uppercase; }
+.club-logo-lg.club-monogram { font-size: 1.75rem; }
+
+.header-club { display: flex; align-items: center; gap: 0.5rem; min-width: 0; color: var(--ground); }
+.header-club-x { color: var(--muted-on-ink); font-size: 1.125rem; }
+.header-club-name { font: 700 1.125rem/1 var(--display); letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.hero-club { display: flex; align-items: center; gap: 0.75rem; margin: 0 0 1rem; }
+.hero-club .kicker { display: block; margin: 0 0 0.25rem; }
+.hero-club-platform { display: block; color: var(--muted-on-ink); font-size: 0.8125rem; }
+.hero-actions { margin: 1.25rem 0 0; }
+
+.button-strava { gap: 0.5rem; background: #fc5200; border-color: #fc5200; color: #fff; }
+.button-strava:hover { background: #d94600; border-color: #d94600; color: #fff; }
+
+.club-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1rem; margin-top: 2rem; padding: 1rem 1.25rem; }
+.club-strip p { flex: 1 1 16rem; margin: 0; font-size: 0.9375rem; }
+
+/* Club page */
+.club-logo-xl { width: 5rem; height: 5rem; }
+.club-logo-xl.club-monogram { font-size: 2.5rem; }
+.header-club { text-decoration: none; }
+.header-club:hover { color: var(--accent); }
+.hero-club-page { padding-top: 2.5rem; }
+.club-hero { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 1.25rem 1.75rem; }
+.club-hero-main { flex: 1 1 20rem; min-width: 0; }
+.club-hero-lede { max-width: 38rem; margin: 1rem 0 0; color: var(--muted-on-ink); font-size: 1.0625rem; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 0.625rem; }
+@media (min-width: 40rem) {
+	.club-logo-xl { width: 7rem; height: 7rem; }
+}

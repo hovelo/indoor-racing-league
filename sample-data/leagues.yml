@@ -2,6 +2,7 @@
 - id: sample-league
   slug: sample-x7q2m9k4
   name: Sample handicap league
+  club: sample-cc            # id from clubs.yml (optional)
   platform: zwift
   target_minutes: [40, 60]
   qualifier: sample-2026-09-qualifier

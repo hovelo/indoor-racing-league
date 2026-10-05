@@ -1,5 +1,14 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const { dir: dataDir, CLUB_LOGO_DIR, CLUB_LOGO_URL } = require('./lib/data-dir');
+
 module.exports = function (eleventyConfig) {
 	eleventyConfig.addPassthroughCopy('src/css');
+	// Club logos live with the league data (private repo or sample-data/).
+	const logos = path.join(dataDir, CLUB_LOGO_DIR);
+	if (fs.existsSync(logos)) {
+		eleventyConfig.addPassthroughCopy({ [path.relative(__dirname, logos)]: CLUB_LOGO_URL.replace(/^\/|\/$/g, '') });
+	}
 	eleventyConfig.addPassthroughCopy('src/images');
 	eleventyConfig.addPassthroughCopy('src/_headers');
 	// Self-hosted fonts (latin subset only), referenced from css/style.css.
@@ -21,6 +30,13 @@ module.exports = function (eleventyConfig) {
 
 	const longDate = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
 	eleventyConfig.addFilter('shortDate', (iso) => longDate.format(new Date(`${iso}T00:00:00Z`)));
+	eleventyConfig.addFilter('domain', (url) => {
+		try {
+			return new URL(url).hostname.replace(/^www\./, '');
+		} catch {
+			return url;
+		}
+	});
 	eleventyConfig.addFilter('pad2', (n) => String(n).padStart(2, '0'));
 	eleventyConfig.addFilter('percent', (x) => `${Math.round(x * 100)}%`);
 	eleventyConfig.addFilter('ordinal', (n) => {

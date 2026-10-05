@@ -1,0 +1,7 @@
+# SAMPLE DATA. A club is the group a league belongs to. Several leagues can share one.
+- id: sample-cc
+  name: Sample CC
+  logo: sample-cc.svg        # file in clubs/, or a full https:// URL
+  strava: sample-cc          # Strava club slug or ID, or the full club URL
+  url: https://example.com/  # optional: the club's own site
+  description: A made-up club for working on the site.  # optional, shown on the club page
