@@ -38,7 +38,7 @@ eleventyComputed:
 				<span class="mono">{% if feature.status == 'open' %}{{ feature.daysLeft }} day{% if feature.daysLeft != 1 %}s{% endif %} left{% else %}Opens {{ feature.window.from | shortDate }}{% endif %}</span>
 			</span>
 			<span class="feature-title">{{ eventLabel(feature) }} · {{ routeName(feature) }}</span>
-			<span class="feature-meta">{% if feature.type == 'qualifier' %}Qualifier{% else %}{{ feature.route_type | capitalize }}{% endif %} · {{ dates(feature) }} · ride it solo, flat out</span>
+			<span class="feature-meta">{% if feature.type == 'qualifier' %}Qualifier{% elif feature.type == 'challenge' %}Challenge · {{ feature.route_type | capitalize }}{% else %}{{ feature.route_type | capitalize }}{% endif %} · {{ dates(feature) }} · ride it solo, flat out</span>
 			<span class="feature-link">Event details <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
 		</a>
 		{%- endif %}
@@ -94,11 +94,12 @@ eleventyComputed:
 		<ol class="events">
 			{%- for e in league.events %}
 			<li>
-				<a class="event-row is-{{ e.status }}" href="/l/{{ league.slug }}/{{ e.id }}/">
+				<a class="event-row is-{{ e.status }}{% if e.type == 'challenge' %} is-challenge{% endif %}" href="/l/{{ league.slug }}/{{ e.id }}/">
 					<span class="event-num">{{ eventNum(e) }}</span>
 					<span class="event-title">
 						<span class="event-route">{{ routeName(e) }}</span>
 						{%- if e.route.world %}<span class="event-world">{{ e.route.world }}{% if e.route.distance_km %} · {{ e.route.distance_km }} km{% endif %}{% if e.route.elevation_m %} · {{ e.route.elevation_m }} m{% endif %}</span>{% endif %}
+						{%- if e.type == 'challenge' %}<span class="event-note">Challenge · ride it as often as you like, best lap counts</span>{% endif %}
 					</span>
 					<span class="event-tags">
 						{{ typeBadge(e) }}

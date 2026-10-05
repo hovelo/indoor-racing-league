@@ -229,6 +229,14 @@ abbr[title] { text-decoration: none; }
 .event-dates { font-size: 0.8125rem; font-weight: 500; }
 .event-row .badge { min-width: 5.5rem; }
 .event-row.is-open .badge-qualifier { background: var(--ground); color: var(--ink); }
+/* Challenge: a lime "race number" block instead of a plain number, plus a note under the route */
+.event-row.is-challenge .event-num {
+	display: inline-grid; place-items: center; width: 2.5rem; height: 2.5rem;
+	background: var(--accent); color: var(--ink); transform: var(--skew);
+}
+.event-note { display: block; margin-top: 0.375rem; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+.event-row.is-open .event-note { color: var(--accent); }
+.event-row.is-open .badge-punchy, .hero .badge-punchy { border-color: var(--climb-bg); color: var(--climb-bg); }
 
 /* Bonus segments */
 .segments { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 0.625rem; }
@@ -271,7 +279,7 @@ abbr[title] { text-decoration: none; }
 .points-list { margin: 0; padding: 0 !important; list-style: none; }
 .points-list li { display: flex; align-items: baseline; gap: 1rem; padding: 0.875rem 0; border-bottom: 1px solid var(--rule); }
 .points-list li:last-child { border-bottom: 0; padding-bottom: 0; }
-.points-value { flex: 0 0 4.5rem; font: 700 1.5rem/1 var(--mono); font-variant-numeric: tabular-nums; }
+.points-value { flex: 0 0 4.5rem; font: 700 1.0625rem/1.4 var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .points-list li span:last-child { color: var(--ink-2); }
 
 /* League page: rules */
@@ -365,7 +373,6 @@ main:has(> .cta:last-child) + .site-footer { margin-top: 0; }
 .club-logo-lg.club-monogram { font-size: 1.75rem; }
 
 .header-club { display: flex; align-items: center; gap: 0.5rem; min-width: 0; color: var(--ground); }
-.header-club-x { color: var(--muted-on-ink); font-size: 1.125rem; }
 .header-club-name { font: 700 1.125rem/1 var(--display); letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .hero-club { display: flex; align-items: center; gap: 0.75rem; margin: 0 0 1rem; }
