@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Clones the private data repo into src/_data/league using a read-only deploy key.
 # DATA_DEPLOY_KEY: base64-encoded ed25519 private key (Netlify env var, Builds scope, Production only).
-# The matching public key is a read-only deploy key on hovelo/indoor-racing-league-data.
+# The matching public key is a read-only deploy key on mikestreety/indoor-racing-league-data.
 set -euo pipefail
 
 if [[ -z "${DATA_DEPLOY_KEY:-}" ]]; then
@@ -24,6 +24,6 @@ echo 'github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH
 
 rm -rf src/_data/league
 GIT_SSH_COMMAND='ssh -i ~/.ssh/irl_data -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes' \
-	git clone --depth 1 --quiet git@github.com:hovelo/indoor-racing-league-data.git src/_data/league
+	git clone --depth 1 --quiet git@github.com:mikestreety/indoor-racing-league-data.git src/_data/league
 
 rm -f ~/.ssh/irl_data

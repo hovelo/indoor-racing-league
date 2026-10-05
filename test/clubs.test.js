@@ -3,9 +3,9 @@ const assert = require('node:assert/strict');
 const { loadClubs, clubFor, stravaUrl } = require('../lib/clubs');
 
 test('strava club accepts a slug, an ID or a URL', () => {
-	assert.equal(stravaUrl('hovelo'), 'https://www.strava.com/clubs/hovelo');
+	assert.equal(stravaUrl('sample-cc'), 'https://www.strava.com/clubs/sample-cc');
 	assert.equal(stravaUrl(123456), 'https://www.strava.com/clubs/123456');
-	assert.equal(stravaUrl('https://www.strava.com/clubs/hovelo'), 'https://www.strava.com/clubs/hovelo');
+	assert.equal(stravaUrl('https://www.strava.com/clubs/sample-cc'), 'https://www.strava.com/clubs/sample-cc');
 	assert.equal(stravaUrl(null), null);
 });
 

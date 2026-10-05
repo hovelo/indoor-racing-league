@@ -10,7 +10,7 @@ npm start        # builds from sample-data/ unless src/_data/league/ exists
 npm test         # handicap model, with the worked example as a fixture
 ```
 
-To build with real data, clone the private data repo into `src/_data/league/` (gitignored).
+To build with real data, clone the private data repo ([`mikestreety/indoor-racing-league-data`](https://github.com/mikestreety/indoor-racing-league-data)) into `src/_data/league/` (gitignored). Netlify does this at build time with a read-only deploy key (`DATA_DEPLOY_KEY`, see `scripts/fetch-data.sh`).
 
 ## Layout
 
@@ -25,7 +25,7 @@ To build with real data, clone the private data repo into `src/_data/league/` (g
 
 ## Clubs
 
-A league can belong to a club (`club:` in `leagues.yml`, an id from `clubs.yml`). The club's logo and name appear in the header, league hero and footer of league and event pages, with a Strava club button on the league page, a join reminder on open and upcoming events, and a Club row in the Rules section. Clubs never appear on the public homepage.
+The league is independent of any club; clubs are users of it. A league can belong to a club (`club:` in `leagues.yml`, an id from `clubs.yml`). The club's logo and name appear in the header, league hero and footer of league and event pages, with a Strava club button on the league page, a join reminder on open and upcoming events, and a Club row in the Rules section. Clubs never appear on the public homepage.
 
 ```yaml
 # clubs.yml
