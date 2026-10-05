@@ -87,6 +87,8 @@ module.exports = function () {
 
 		const normal = leagueEvents.filter((e) => e.type !== 'qualifier');
 		const closed = normal.filter((e) => e.status === 'closed');
+		const qualifier = leagueEvents.find((e) => e.id === league.qualifier) || null;
+		const pts = result.settings.points;
 		out.leagues.push({
 			slug: league.slug,
 			name: league.name,
@@ -100,6 +102,16 @@ module.exports = function () {
 			lastClosed: closed.length ? closed[closed.length - 1] : null,
 			current: leagueEvents.find((e) => e.status === 'open') || null,
 			next: leagueEvents.find((e) => e.status === 'upcoming') || null,
+			// League-specific settings, shown in the Rules section of the league page.
+			rules: {
+				points: pts,
+				// Place at which finishing points bottom out at the minimum.
+				floorPlace: pts.step > 0 ? Math.ceil((pts.first - pts.min) / pts.step) + 1 : null,
+				segmentBonus: result.settings.segment_bonus,
+				dropWorst: result.settings.drop_worst,
+				targetMinutes: league.target_minutes || null,
+				qualifier: qualifier ? { id: qualifier.id, route: qualifier.route, window: qualifier.window } : null,
+			},
 		});
 		out.events.push(...leagueEvents);
 	}

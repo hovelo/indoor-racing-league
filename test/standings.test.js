@@ -207,3 +207,15 @@ test('legacy qualifier_bonus setting still applies', () => {
 	const out = computeStandings(l, members, routes, events);
 	assert.equal(out.events[0].results.find((x) => x.member === 'a').bonus, 10);
 });
+
+test('points come from the league, and missing points warn', () => {
+	const custom = { ...league, settings: { points: { first: 10, step: 2, min: 3, participation: 1 } } };
+	const r = computeStandings(custom, members, routes, events);
+	const e1 = r.events.find((e) => e.id === 'e1');
+	// Places 1, 2, 3 -> 10, 8, 6 finishing points, plus 1 for finishing.
+	assert.deepEqual(e1.results.map((x) => x.points), [11, 9, 7]);
+	assert.ok(!r.warnings.some((w) => w.includes('settings.points')));
+
+	const fallback = computeStandings(league, members, routes, events);
+	assert.ok(fallback.warnings.some((w) => w.includes('settings.points not set')));
+});

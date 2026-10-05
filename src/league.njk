@@ -103,4 +103,52 @@ eleventyComputed:
 			{%- endfor %}
 		</ol>
 	</section>
+
+	{%- set rules = league.rules %}
+	{%- set pts = rules.points %}
+	{%- set words = ['none', 'fastest rider', 'two fastest riders', 'three fastest riders', 'four fastest riders', 'five fastest riders'] %}
+	{%- set bonusCount = rules.segmentBonus | length %}
+	<section class="section" id="rules">
+		<div class="section-head">
+			<h2>Rules</h2>
+			<p class="section-note">How this league is set up</p>
+		</div>
+		<div class="points">
+			<div class="points-card panel">
+				<h3>Events</h3>
+				<ul class="points-list">
+					<li><span class="points-value">{{ pts.first }}</span><span>for the best result against prediction{% if pts.step > 0 %}, then {{ pts.step }} fewer per place{% if rules.floorPlace and rules.floorPlace > 1 %}, down to {{ pts.min }} from {{ rules.floorPlace | ordinal }} place{% endif %}{% endif %}</span></li>
+					{%- if pts.participation %}
+					<li><span class="points-value">+{{ pts.participation }}</span><span>for every finish, so everyone who rides scores</span></li>
+					{%- endif %}
+					{%- if bonusCount %}
+					<li><span class="points-value">+{{ rules.segmentBonus | join('/') }}</span><span>to the {{ words[bonusCount] if bonusCount < words | length else bonusCount + ' fastest riders' }} on each bonus segment, on raw times, when an event has them</span></li>
+					{%- endif %}
+				</ul>
+			</div>
+			<div class="points-card panel">
+				<h3>Qualifier</h3>
+				<ul class="points-list">
+					{%- if pts.participation %}
+					<li><span class="points-value">+{{ pts.participation }}</span><span>for riding it</span></li>
+					{%- endif %}
+					{%- if bonusCount %}
+					<li><span class="points-value">+{{ rules.segmentBonus | join('/') }}</span><span>to the {{ words[bonusCount] if bonusCount < words | length else bonusCount + ' fastest riders' }} on each climb and sprint</span></li>
+					{%- endif %}
+					<li><span class="points-value">&ndash;</span><span>no finishing points: it sets everyone's predicted times</span></li>
+				</ul>
+			</div>
+		</div>
+		<dl class="league-rules panel">
+			{%- if rules.qualifier %}
+			<div><dt>Qualifier</dt><dd><a href="/l/{{ league.slug }}/{{ rules.qualifier.id }}/">{{ rules.qualifier.route.name }}</a>{% if rules.qualifier.route.world %}, {{ rules.qualifier.route.world }}{% endif %}. Ride it as often as you like in the window; your best effort on each segment counts.</dd></div>
+			{%- endif %}
+			{%- if rules.targetMinutes %}
+			<div><dt>Event length</dt><dd>Routes take about {{ rules.targetMinutes | join('&ndash;') | safe }} minutes at 2.5&ndash;3 W/kg, each open for two weeks.</dd></div>
+			{%- endif %}
+			<div><dt>Dropped results</dt><dd>{% if rules.dropWorst %}Your worst {% if rules.dropWorst == 1 %}event score doesn't{% else %}{{ rules.dropWorst }} event scores don't{% endif %} count. Missed events are dropped first; the qualifier is never dropped.{% else %}None: every event counts.{% endif %}</dd></div>
+			<div><dt>Ties</dt><dd>Riders level to the second share the higher place and its points.</dd></div>
+			<div><dt>No qualifier yet?</dt><dd>You can still ride events{% if pts.participation %} and score {{ pts.participation }} for finishing{% endif %}{% if bonusCount %}, plus any segment bonus{% endif %}. Ride the qualifier route to get ranked.</dd></div>
+		</dl>
+	</section>
 </div>

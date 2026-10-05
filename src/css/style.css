@@ -273,6 +273,18 @@ abbr[title] { text-decoration: none; }
 .points-value { flex: 0 0 4.5rem; font: 700 1.5rem/1 var(--mono); font-variant-numeric: tabular-nums; }
 .points-list li span:last-child { color: var(--ink-2); }
 
+/* League page: rules */
+#rules .points { margin-bottom: 0.625rem; }
+.league-rules { margin: 0; padding: 0.25rem 1.25rem; }
+.league-rules > div { padding: 0.875rem 0; border-bottom: 1px solid var(--rule); }
+.league-rules > div:last-child { border-bottom: 0; }
+.league-rules dt { margin-bottom: 0.25rem; color: var(--ink); font: 700 1.125rem/1.1 var(--display); text-transform: uppercase; }
+.league-rules dd { margin: 0; color: var(--ink-2); }
+@media (min-width: 40rem) {
+	.league-rules > div { display: grid; grid-template-columns: 11rem minmax(0, 1fr); gap: 1rem; align-items: baseline; }
+	.league-rules dt { margin: 0; }
+}
+
 .rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 0.625rem; margin: 0; padding: 0 !important; list-style: none; counter-reset: rule; }
 .rules li { counter-increment: rule; display: grid; grid-template-columns: 2.5rem minmax(0, 1fr); column-gap: 0.75rem; align-content: start; padding: 1rem 1.125rem; color: var(--ink-2); font-size: 0.9375rem; }
 .rules li::before { content: counter(rule, decimal-leading-zero); grid-row: span 2; font: 800 1.75rem/1 var(--display); color: var(--ink); }

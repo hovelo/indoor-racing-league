@@ -6,5 +6,11 @@
   target_minutes: [40, 60]
   qualifier: sample-2026-09-qualifier
   members: [tom-c, meg-g, jon-a, sam-p, ali-r, kev-b, liz-h, dan-w]
-  settings:
-    drop_worst: 0
+  settings:                  # set per league; shown in the Rules section of the league page
+    points:
+      first: 15              # points for 1st on adjusted time
+      step: 1                # fewer per place
+      min: 1                 # floor for any finisher
+      participation: 2       # added for every valid finish (qualifier included)
+    segment_bonus: [3, 2, 1] # top raw times on each designated bonus segment
+    drop_worst: 0            # worst event scores excluded from the season total
