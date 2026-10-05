@@ -37,7 +37,7 @@ eleventyComputed:
 		</div>
 		<div class="hero-foot">
 			<span>
-				{%- if event.type == 'qualifier' %}{{ riders }} rider{% if riders != 1 %}s{% endif %} · sets everyone's benchmark
+				{%- if event.type == 'qualifier' %}{{ riders }} rider{% if riders != 1 %}s{% endif %}
 				{%- else %}{{ riders }} rider{% if riders != 1 %}s{% endif %} · {{ ranked }} ranked{% if event.weights %} · weights: climb {{ event.weights.climb | percent }}, flat {{ event.weights.flat | percent }}, sprint {{ event.weights.sprint | percent }}{% endif %}{% endif -%}
 			</span>
 			{%- if event.route.info and event.route.info.url %}
@@ -156,7 +156,6 @@ eleventyComputed:
 	<section class="section">
 		<div class="section-head">
 			<h2>Bonus segments</h2>
-			<p class="section-note">Fastest raw times · {{ event.segmentBonus | join(", ") }} points</p>
 		</div>
 		<div class="segments">
 			{%- for seg in event.segments %}

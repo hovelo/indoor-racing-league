@@ -22,7 +22,6 @@ eleventyComputed:
 			<ul class="hero-stats">
 				<li><strong>{{ league.riders }}</strong> riders</li>
 				<li><strong>{{ league.eventsDone }}/{{ league.eventColumns | length }}</strong> events</li>
-				<li>Handicapped on qualifier benchmarks</li>
 			</ul>
 		</div>
 		{%- if feature %}
@@ -43,7 +42,9 @@ eleventyComputed:
 	<section class="section">
 		<div class="section-head">
 			<h2>Standings</h2>
-			<p class="section-note">{% if league.lastClosed %}Points after Event {{ eventNum(league.lastClosed) }} · {% endif %}ties share the higher place</p>
+			{%- if league.lastClosed %}
+			<p class="section-note">Points after Event {{ eventNum(league.lastClosed) }}</p>
+			{%- endif %}
 		</div>
 		{%- if league.table | length %}
 		<div class="panel table-scroll">
