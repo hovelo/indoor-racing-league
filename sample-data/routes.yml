@@ -1,9 +1,12 @@
 # Segment names should match Strava exactly; strava_segment_id makes them link.
+# distance_km and elevation_m are optional, shown on event pages (per lap for lapped routes).
 # start/end are [lat, lon] for the FIT fallback. See "Adding a route" in 06-data-formats.md.
 - id: watopia-hilly
   platform: zwift
   world: Watopia
   name: Hilly Route
+  distance_km: 9.3       # per lap
+  elevation_m: 109
   info: { name: Zwift Insider, url: "https://zwiftinsider.com/route/hilly-route/" }
   laps_default: 1
   segments:
@@ -14,6 +17,8 @@
   platform: zwift
   world: Watopia
   name: Figure 8
+  distance_km: 29.7
+  elevation_m: 254
   info: { name: Zwift Insider, url: "https://zwiftinsider.com/route/figure-8/" }
   segments:
     lap: { name: Figure 8, strava_segment_id: 12118421, start: [-11.6355, 166.95185], end: [-11.6355, 166.95184] }
@@ -24,6 +29,8 @@
   platform: zwift
   world: Watopia
   name: Big Flat 8
+  distance_km: 29.2
+  elevation_m: 103
   info: { name: Zwift Insider, url: "https://zwiftinsider.com/route/big-flat-8/" }
   segments:
     lap: { name: Big Flat 8 (full route), strava_segment_id: null }

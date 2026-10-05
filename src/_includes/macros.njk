@@ -1,0 +1,23 @@
+{%- macro eventNum(e) -%}
+{% if e.type == 'qualifier' %}Q{% else %}{{ e.number | pad2 }}{% endif %}
+{%- endmacro -%}
+
+{%- macro typeBadge(e) -%}
+{% if e.type == 'qualifier' %}<span class="badge badge-qualifier">Qualifier</span>{% else %}<span class="badge badge-{{ e.route_type }}">{{ e.route_type }}</span>{% endif %}
+{%- endmacro -%}
+
+{%- macro statusBadge(e) -%}
+<span class="badge badge-{{ e.status }}">{{ e.status }}</span>
+{%- endmacro -%}
+
+{%- macro place(r) -%}
+<span class="place-num{% if r.place <= 3 %} place-{{ r.place }}{% endif %}">{% if r.tied %}={% endif %}{{ r.place }}</span>
+{%- endmacro -%}
+
+{%- macro routeName(e) -%}
+{{ e.route.name }}{% if e.laps and e.laps > 1 %} &times; {{ e.laps }}{% endif %}
+{%- endmacro -%}
+
+{%- macro dates(e) -%}
+{{ e.window.from | shortDate }} &ndash; {{ e.window.to | shortDate }}
+{%- endmacro -%}

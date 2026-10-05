@@ -11,63 +11,110 @@ eleventyExcludeFromCollections: true
 eleventyComputed:
   title: "{{ league.name }}"
   homeHref: "/l/{{ league.slug }}/"
-  brandSub: "{{ league.name }}"
 ---
-<section class="section wrap">
-	<h1>Standings</h1>
-
-	{%- set played = league.eventColumns | length %}
-	{%- if league.table | length %}
-	<div class="table-scroll">
-		<table class="table">
-			<thead>
-				<tr>
-					<th class="place" scope="col"><span class="visually-hidden">Place</span></th>
-					<th scope="col">Rider</th>
-					<th class="num" scope="col" title="Qualifier points">Q</th>
-					{%- for e in league.eventColumns %}
-					<th class="num" scope="col"><a href="/l/{{ league.slug }}/{{ e.id }}/" title="{{ e.route.name }}">E{{ e.number }}</a></th>
-					{%- endfor %}
-					<th class="num" scope="col">Total</th>
-				</tr>
-			</thead>
-			<tbody>
-				{%- for row in league.table %}
-				<tr class="p{{ row.place }}">
-					<td class="place">{{ row.place }}</td>
-					<td class="rider">{{ row.display }}</td>
-					<td class="num">{% if row.qualifier %}{{ row.qualifier }}{% else %}<span class="dim">&ndash;</span>{% endif %}</td>
-					{%- for pts in row.events %}
-					<td class="num">{% if pts !== null %}{{ pts }}{% else %}<span class="dim">&ndash;</span>{% endif %}</td>
-					{%- endfor %}
-					<td class="num total">{{ row.total }}</td>
-				</tr>
-				{%- endfor %}
-			</tbody>
-		</table>
+{%- from "macros.njk" import eventNum, typeBadge, statusBadge, place, routeName, dates -%}
+{%- set feature = league.current or league.next %}
+<section class="hero">
+	<div class="wrap hero-inner">
+		<div class="hero-main">
+			<p class="kicker">{{ league.platform | capitalize }}{% if league.target_minutes %} · {{ league.target_minutes | join("–") }} minute events{% endif %}</p>
+			<h1 class="display">{{ league.name }}</h1>
+			<ul class="hero-stats">
+				<li><strong>{{ league.riders }}</strong> riders</li>
+				<li><strong>{{ league.eventsDone }}/{{ league.eventColumns | length }}</strong> events</li>
+				<li>Handicapped on qualifier benchmarks</li>
+			</ul>
+		</div>
+		{%- if feature %}
+		<a class="feature-card" href="/l/{{ league.slug }}/{{ feature.id }}/">
+			<span class="feature-top">
+				<span class="label">{% if feature.status == 'open' %}Riding now{% else %}Next up{% endif %}</span>
+				<span class="mono">{% if feature.status == 'open' %}{{ feature.daysLeft }} day{% if feature.daysLeft != 1 %}s{% endif %} left{% else %}Opens {{ feature.window.from | shortDate }}{% endif %}</span>
+			</span>
+			<span class="feature-title">{% if feature.type == 'qualifier' %}Qualifier{% else %}Event {{ eventNum(feature) }}{% endif %} · {{ routeName(feature) }}</span>
+			<span class="feature-meta">{% if feature.type == 'qualifier' %}Qualifier{% else %}{{ feature.route_type | capitalize }}{% endif %} · {{ dates(feature) }} · ride it solo, flat out</span>
+			<span class="feature-link">Event details <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+		</a>
+		{%- endif %}
 	</div>
-	<p class="table-note">Q is qualifier points (participation plus bonuses). A dash means not ridden.</p>
-	{%- else %}
-	<p class="empty">No results yet. Ride the qualifier!</p>
-	{%- endif %}
 </section>
 
-<section class="section wrap">
-	<h2>Events</h2>
-	<ul class="events">
-		{%- for e in league.events | reverse %}
-		<li>
-			<a class="event-row" href="/l/{{ league.slug }}/{{ e.id }}/">
-				<span class="event-num">{% if e.type == 'qualifier' %}Q{% else %}{{ e.number }}{% endif %}</span>
-				<span class="event-title">{% if e.type == 'qualifier' %}Qualifier: {% endif %}{{ e.route.name }}{% if e.laps and e.laps > 1 %} &times; {{ e.laps }}{% endif %}</span>
-				<span class="badge badge-{{ e.status }}">{{ e.status }}</span>
-				<span class="event-meta">
-					<span>{{ e.window.from | shortDate }} &ndash; {{ e.window.to | shortDate }}</span>
-					{%- if e.route.world %}<span>{{ e.route.world }}</span>{% endif %}
-					{%- if e.type == 'qualifier' %}<span class="badge badge-qualifier">qualifier</span>{% else %}<span class="badge badge-{{ e.route_type }}">{{ e.route_type }}</span>{% endif %}
-				</span>
-			</a>
-		</li>
-		{%- endfor %}
-	</ul>
-</section>
+<div class="wrap">
+	<section class="section">
+		<div class="section-head">
+			<h2>Standings</h2>
+			<p class="section-note">{% if league.lastClosed %}Points after Event {{ eventNum(league.lastClosed) }} · {% endif %}ties share the higher place</p>
+		</div>
+		{%- if league.table | length %}
+		<div class="panel table-scroll">
+			<table class="table">
+				<thead>
+					<tr>
+						<th class="col-place" scope="col">Pos</th>
+						<th scope="col">Rider</th>
+						<th class="num" scope="col"><abbr title="Qualifier">Q</abbr></th>
+						{%- for e in league.eventColumns %}
+						<th class="num" scope="col"><a href="/l/{{ league.slug }}/{{ e.id }}/" title="{{ e.route.name }}">E{{ e.number }}</a></th>
+						{%- endfor %}
+						<th class="num col-total" scope="col">Total</th>
+					</tr>
+				</thead>
+				<tbody>
+					{%- for row in league.table %}
+					<tr{% if row.place == 1 %} class="is-leader"{% endif %}>
+						<td class="col-place">{{ place(row) }}</td>
+						<td class="rider">{{ row.display }}{% if not row.qualifier %} <span class="tag">No qualifier</span>{% endif %}</td>
+						<td class="num">{% if row.qualifier %}{{ row.qualifier }}{% else %}<span class="dim">&ndash;</span>{% endif %}</td>
+						{%- for pts in row.events %}
+						<td class="num">{% if pts !== null %}{{ pts }}{% else %}<span class="dim">&ndash;</span>{% endif %}</td>
+						{%- endfor %}
+						<td class="num total">{{ row.total }}</td>
+					</tr>
+					{%- endfor %}
+				</tbody>
+			</table>
+		</div>
+		{%- else %}
+		<p class="empty">No results yet. Ride the qualifier!</p>
+		{%- endif %}
+	</section>
+
+	<section class="section">
+		<div class="section-head">
+			<h2>Events</h2>
+		</div>
+		<ol class="events">
+			{%- for e in league.events %}
+			<li>
+				<a class="event-row is-{{ e.status }}" href="/l/{{ league.slug }}/{{ e.id }}/">
+					<span class="event-num">{{ eventNum(e) }}</span>
+					<span class="event-title">
+						<span class="event-route">{{ routeName(e) }}</span>
+						{%- if e.route.world %}<span class="event-world">{{ e.route.world }}{% if e.route.distance_km %} · {{ e.route.distance_km }} km{% endif %}{% if e.route.elevation_m %} · {{ e.route.elevation_m }} m{% endif %}</span>{% endif %}
+					</span>
+					<span class="event-tags">
+						{{ typeBadge(e) }}
+						<span class="event-dates mono">{{ dates(e) }}</span>
+						{{ statusBadge(e) }}
+					</span>
+				</a>
+			</li>
+			{%- endfor %}
+		</ol>
+	</section>
+
+	<section class="section explainer">
+		<div>
+			<h3>01 · Ride it</h3>
+			<p>Each event is a set route and a two-week window. Ride it solo, flat out, whenever suits you.</p>
+		</div>
+		<div>
+			<h3>02 · Get handicapped</h3>
+			<p>Your time is adjusted against your own qualifier benchmark, weighted for flat, rolling or climbing routes.</p>
+		</div>
+		<div>
+			<h3>03 · Score points</h3>
+			<p>15 for the fastest adjusted time, one fewer per place, plus 2 for finishing and bonuses on set segments.</p>
+		</div>
+	</section>
+</div>

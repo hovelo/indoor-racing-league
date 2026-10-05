@@ -3,9 +3,9 @@ layout: base.njk
 ---
 <section class="section wrap">
 	<h1>Race when you like</h1>
-	<p class="lede">The Indoor Racing League is a handicapped Zwift league for Hovélo riders and friends. No start times, no pack racing &mdash; just ride the route whenever suits you, and your time is adjusted for your ability, so anyone can win.</p>
+	<p class="lede">The Indoor Racing League is a handicapped Zwift league for groups of friends. No start times, no pack racing &mdash; just ride the route whenever suits you, and your time is adjusted for your ability, so anyone can win.</p>
 	<div class="actions">
-		<a class="button" href="#join">Get involved</a>
+		<a class="button" href="mailto:{{ site.email }}">Get involved</a>
 		<a class="button button-outline" href="#how">How it works</a>
 	</div>
 </section>
@@ -57,7 +57,7 @@ layout: base.njk
 			<h3>Qualifier</h3>
 			<ul>
 				<li>2 points for riding it</li>
-				<li>Bonus 3, 2 and 1 points for the three fastest riders on the full route, each climb and each of the sprints</li>
+				<li>Bonus 3, 2 and 1 points for the three fastest riders on each climb and sprint</li>
 			</ul>
 		</div>
 	</div>
@@ -70,7 +70,7 @@ layout: base.njk
 		<li><strong>Ride solo.</strong> No group rides, races or events &mdash; drafting breaks the handicap.</li>
 		<li><strong>Ride the set route, flat out, within the window.</strong> Your best effort counts.</li>
 		<li><strong>Keep Zwift's Strava sync switched on</strong> and check your first league ride appears.</li>
-		<li><strong>Join the <a href="{{ site.strava }}">Hovélo Strava club</a></strong> so you show up on the leaderboard.</li>
+		<li><strong>Join your league's Strava club</strong> so you show up on the leaderboard.</li>
 		<li><strong>Don't set rides to "Only You"</strong>, or they won't appear on segment leaderboards.</li>
 		<li><strong>Use an honest weight and height in Zwift</strong>, and a smart trainer or power meter if you can.</li>
 	</ol>
@@ -80,11 +80,9 @@ layout: base.njk
 <section class="band" id="join">
 	<div class="wrap">
 		<h2>Get involved</h2>
-		<p class="lede">Fancy it? Join the Hovélo Strava club and WhatsApp community, then shout in WhatsApp that you're in. We'll send you the qualifier details.</p>
+		<p class="lede">Fancy it, or want to run a league for your own group? Drop an email and we'll send you the qualifier details.</p>
 		<div class="actions">
-			<a class="button button-strava" href="{{ site.strava }}">Join the Strava club</a>
-			<a class="button button-whatsapp" href="{{ site.whatsapp }}">Join the WhatsApp community</a>
+			<a class="button" href="mailto:{{ site.email }}">{{ site.email }}</a>
 		</div>
-		<p class="muted small" style="text-align:center;margin-top:1.5rem">You need to be in the Strava club to show up on the leaderboards.</p>
 	</div>
 </section>
