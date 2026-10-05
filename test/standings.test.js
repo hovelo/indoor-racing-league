@@ -219,3 +219,34 @@ test('points come from the league, and missing points warn', () => {
 	const fallback = computeStandings(league, members, routes, events);
 	assert.ok(fallback.warnings.some((w) => w.includes('settings.points not set')));
 });
+
+test('a challenge is scored after same-day events and never moves benchmarks', () => {
+	const challenge = {
+		id: 'a-challenge', // sorts before e1 by id, so ordering must come from the type
+		league: 'test',
+		type: 'challenge',
+		route: 'hilly',
+		route_type: 'punchy',
+		score_segment: 'lap',
+		window: { from: '2026-10-19', to: '2026-11-01' },
+		results: [
+			{ member: 'a', segment: 'lap', time: '14:00', date: '2026-10-21' },
+			{ member: 'b', segment: 'lap', time: '15:00', date: '2026-10-28' },
+			{ member: 'c', segment: 'lap', time: '16:00', date: '2026-10-25' },
+		],
+	};
+	const base = computeStandings(league, members, routes, events);
+	const out = computeStandings(league, members, routes, [...events, challenge]);
+
+	assert.deepEqual(out.events.map((e) => e.id), ['q', 'e1', 'a-challenge']);
+	assert.deepEqual(out.benchmarks, base.benchmarks);
+	const c = out.events.find((e) => e.id === 'a-challenge');
+	assert.equal(c.benchmarksUpdated, false);
+	assert.equal(c.results.length, 3);
+	// Two-week window is fine; a challenge may span any whole number of weeks.
+	assert.ok(!out.warnings.some((w) => w.includes('a-challenge: challenge window')));
+	// Challenge points count towards the season total.
+	const a = out.table.find((r) => r.member === 'a');
+	const aBase = base.table.find((r) => r.member === 'a');
+	assert.equal(a.total, aBase.total + c.results.find((r) => r.member === 'a').points);
+});

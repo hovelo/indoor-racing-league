@@ -9,10 +9,10 @@ pagination:
 permalink: "/l/{{ event.league.slug }}/{{ event.id }}/"
 eleventyExcludeFromCollections: true
 eleventyComputed:
-  title: "{% if event.type == 'qualifier' %}Qualifier{% else %}Event {{ event.number }}{% endif %}: {{ event.route.name }}"
+  title: "{% if event.type == 'qualifier' %}Qualifier{% elif event.type == 'challenge' %}Challenge{% else %}Event {{ event.number }}{% endif %}: {{ event.route.name }}"
   homeHref: "/l/{{ event.league.slug }}/"
 ---
-{%- from "macros.njk" import eventNum, typeBadge, statusBadge, place, routeName, dates, clubLogo, stravaClubButton -%}
+{%- from "macros.njk" import eventNum, eventLabel, typeBadge, statusBadge, place, routeName, dates, clubLogo, stravaClubButton -%}
 {%- set hasSegments = event.segments | length %}
 {%- set ranked = event.results | length %}
 {%- set riders = ranked + (event.unbenchmarked | length) %}
@@ -22,7 +22,7 @@ eleventyComputed:
 		<div class="hero-inner">
 			<div class="hero-main">
 				<p class="event-badges">
-					<span class="event-kicker">{% if event.type == 'qualifier' %}Qualifier{% else %}Event {{ eventNum(event) }}{% endif %}</span>
+					<span class="event-kicker">{{ eventLabel(event) }}</span>
 					{% if event.type != 'qualifier' %}{{ typeBadge(event) }}{% endif %}
 					{{ statusBadge(event) }}
 				</p>

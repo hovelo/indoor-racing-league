@@ -93,7 +93,7 @@ module.exports = function () {
 				...e,
 				status: status(e.window, today),
 				daysLeft: daysBetween(today, e.window.to) + 1,
-				number: e.type === 'qualifier' ? null : result.events.slice(0, i + 1).filter((x) => x.type !== 'qualifier').length,
+				number: e.type === 'event' ? result.events.slice(0, i + 1).filter((x) => x.type === 'event').length : null,
 				league: { slug: league.slug, name: league.name, club },
 				participation: result.settings.points.participation,
 				segmentBonus: result.settings.segment_bonus,
@@ -130,6 +130,10 @@ module.exports = function () {
 				dropWorst: result.settings.drop_worst,
 				targetMinutes: league.target_minutes || null,
 				qualifier: qualifier ? { id: qualifier.id, route: qualifier.route, window: qualifier.window } : null,
+				challenge: (() => {
+					const c = leagueEvents.find((e) => e.type === 'challenge');
+					return c ? { id: c.id, route: c.route, window: c.window } : null;
+				})(),
 			},
 		});
 		out.events.push(...leagueEvents);

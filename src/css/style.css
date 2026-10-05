@@ -145,6 +145,7 @@ abbr[title] { text-decoration: none; }
 }
 .badge-flat, .badge-seg-sprint { background: var(--flat-bg); color: var(--flat-fg); }
 .badge-rolling { background: var(--rolling-bg); color: var(--rolling-fg); }
+.badge-punchy { border-color: var(--climb-fg); color: var(--climb-fg); }
 .badge-climbing, .badge-seg-climb { background: var(--climb-bg); color: var(--climb-fg); }
 .badge-qualifier { background: var(--ink); color: var(--ground); }
 .badge-open { background: var(--accent); border-color: var(--accent); color: var(--ink); }
