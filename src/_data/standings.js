@@ -103,8 +103,21 @@ module.exports = function () {
 			};
 		});
 
-		const normal = leagueEvents.filter((e) => e.type !== 'qualifier');
-		const closed = normal.filter((e) => e.status === 'closed');
+		// Scoring order is chronological (a challenge scores after same-day events), but for
+		// display the qualifier comes first, then any challenge, then the numbered events.
+		const DISPLAY_RANK = { qualifier: 0, challenge: 1, event: 2 };
+		const byDisplay = (list) => list
+			.map((e, i) => ({ e, i }))
+			.sort((a, b) => (DISPLAY_RANK[a.e.type] ?? 2) - (DISPLAY_RANK[b.e.type] ?? 2) || a.i - b.i)
+			.map(({ e }) => e);
+		const chronological = leagueEvents.filter((e) => e.type !== 'qualifier');
+		const normal = byDisplay(chronological);
+		const columnOrder = normal.map((e) => chronological.indexOf(e));
+		const table = markTies(result.table).map((row) => ({ ...row, events: columnOrder.map((i) => row.events[i]) }));
+		const closed = chronological.filter((e) => e.status === 'closed');
+		// Feature the numbered event over a challenge open at the same time.
+		const pick = (st) => leagueEvents.find((e) => e.status === st && e.type !== 'challenge')
+			|| leagueEvents.find((e) => e.status === st) || null;
 		const qualifier = leagueEvents.find((e) => e.id === league.qualifier) || null;
 		const pts = result.settings.points;
 		out.leagues.push({
@@ -114,13 +127,13 @@ module.exports = function () {
 			club,
 			target_minutes: league.target_minutes,
 			riders: (league.members || []).length,
-			table: markTies(result.table),
-			events: leagueEvents,
+			table,
+			events: byDisplay(leagueEvents),
 			eventColumns: normal,
 			eventsDone: closed.length,
 			lastClosed: closed.length ? closed[closed.length - 1] : null,
-			current: leagueEvents.find((e) => e.status === 'open') || null,
-			next: leagueEvents.find((e) => e.status === 'upcoming') || null,
+			current: pick('open'),
+			next: pick('upcoming'),
 			// League-specific settings, shown in the Rules section of the league page.
 			rules: {
 				points: pts,
