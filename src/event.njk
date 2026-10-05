@@ -100,7 +100,7 @@ eleventyComputed:
 	{%- endif %}
 	{%- endif %}
 
-	{%- if event.segments | length and event.results | length %}
+	{%- if event.segments | length %}
 	<h2>Segments</h2>
 	<p class="muted">Bonus points on {% if event.segments.length == 1 %}this segment{% else %}each of these {{ event.segments.length }} segments{% endif %}: {{ event.segmentBonus | join(", ") }} for the fastest raw times. Only efforts from a full ride of the route count.</p>
 	<div class="segments">
