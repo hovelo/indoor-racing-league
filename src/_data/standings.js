@@ -60,7 +60,13 @@ module.exports = function () {
 	clubs.warnings.forEach((w) => console.warn(`[standings] ${w}`));
 	const today = new Date().toISOString().slice(0, 10);
 
-	const out = { usingSample, leagues: [], events: [] };
+	const out = {
+		usingSample,
+		leagues: [],
+		events: [],
+		// One public page per club. Leagues are deliberately not listed (their URLs are secret).
+		clubs: [...clubs.byId.values()],
+	};
 
 	for (const league of leagues) {
 		const result = computeStandings(league, members, routes, events);

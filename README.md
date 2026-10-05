@@ -19,6 +19,7 @@ To build with real data, clone the private data repo into `src/_data/league/` (g
 - `src/index.njk` — public overview
 - `src/league.njk` → `/l/{slug}/`, `src/event.njk` → `/l/{slug}/{event}/` (noindex, no-referrer, never linked)
 - `lib/clubs.js` — clubs (name, logo, Strava club) and which league belongs to which
+- `src/club.njk` → `/clubs/{id}/` (public club page; leagues aren't listed)
 - `sample-data/` — fake riders for working without the private repo
 
 ## Clubs
@@ -31,8 +32,11 @@ A league can belong to a club (`club:` in `leagues.yml`, an id from `clubs.yml`)
   name: Sample CC
   logo: sample-cc.svg        # in clubs/ next to clubs.yml, or a full https:// URL
   strava: sample-cc          # Strava club slug or ID, or the full club URL
-  url: https://example.com/  # optional, linked in the footer
+  url: https://example.com/  # optional, linked from the club page and footer
+  description: A made-up club.  # optional, shown on the club page
 ```
+
+Every club gets a public page at `/clubs/{id}/` (logo, name, description, Strava and website buttons, how to take part). It doesn't list the club's leagues, because league URLs are secret. The header club badge on league and event pages links to it.
 
 Local logos are copied to `/images/clubs/`. Square images work best; they're shown in a circle.
 

@@ -19,7 +19,7 @@ test('clubs load, resolve logos and warn on problems', () => {
 		],
 		{ logoExists: (f) => f === 'a.svg', logoUrl: '/images/clubs/' }
 	);
-	assert.deepEqual(byId.get('a'), { id: 'a', name: 'Club A', logo: '/images/clubs/a.svg', strava: 'https://www.strava.com/clubs/club-a', url: null });
+	assert.deepEqual(byId.get('a'), { id: 'a', name: 'Club A', description: null, logo: '/images/clubs/a.svg', strava: 'https://www.strava.com/clubs/club-a', url: null, page: '/clubs/a/' });
 	assert.equal(byId.get('b').logo, 'https://cdn.example/b.png');
 	assert.equal(byId.get('c').logo, null);
 	assert.ok(warnings.some((w) => w.includes('"b" has no Strava club')));

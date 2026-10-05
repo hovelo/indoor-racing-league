@@ -30,6 +30,13 @@ module.exports = function (eleventyConfig) {
 
 	const longDate = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
 	eleventyConfig.addFilter('shortDate', (iso) => longDate.format(new Date(`${iso}T00:00:00Z`)));
+	eleventyConfig.addFilter('domain', (url) => {
+		try {
+			return new URL(url).hostname.replace(/^www\./, '');
+		} catch {
+			return url;
+		}
+	});
 	eleventyConfig.addFilter('pad2', (n) => String(n).padStart(2, '0'));
 	eleventyConfig.addFilter('percent', (x) => `${Math.round(x * 100)}%`);
 	eleventyConfig.addFilter('ordinal', (n) => {
