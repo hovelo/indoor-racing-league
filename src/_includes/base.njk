@@ -32,8 +32,10 @@
 
 	<footer class="site-footer">
 		<div class="wrap site-footer-inner">
-			<p>Fancy running a league for your group? <a href="mailto:{{ site.email }}">{{ site.email }}</a></p>
-			<p>Initials and points only. Raw times stay private.{% if standings.usingSample %} Built from sample data.{% endif %}</p>
+			<p>Made by <a href="https://www.mikestreety.co.uk/">Mike Street</a>.</p>
+			{%- if standings.usingSample %}
+			<p>Built from sample data.</p>
+			{%- endif %}
 		</div>
 	</footer>
 </body>
