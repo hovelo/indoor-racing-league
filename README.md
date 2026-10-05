@@ -20,6 +20,7 @@ To build with real data, clone the private data repo into `src/_data/league/` (g
 - `src/league.njk` → `/l/{slug}/`, `src/event.njk` → `/l/{slug}/{event}/` (noindex, no-referrer, never linked)
 - `lib/clubs.js` — clubs (name, logo, Strava club) and which league belongs to which
 - `src/club.njk` → `/clubs/{id}/` (public club page; leagues aren't listed)
+- `lib/members.js` — validates `members.yml`: warns on a missing or invalid `strava_id` (Strava athlete ID) or a Strava name shared by two members, and **fails the build** on a duplicate `strava_id`. Only `display` ever reaches a template.
 - `sample-data/` — fake riders for working without the private repo
 
 ## Clubs

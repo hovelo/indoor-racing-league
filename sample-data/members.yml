@@ -1,8 +1,8 @@
-- { id: tom-c, display: Tom C., strava_names: ["Tom Example"], joined: 2026-08-31 }
-- { id: meg-g, display: Meg G., strava_names: ["Meg Example"], joined: 2026-08-31 }
-- { id: jon-a, display: Jon A., strava_names: ["Jon Example"], joined: 2026-08-31 }
-- { id: sam-p, display: Sam P., strava_names: ["Sam Example"], joined: 2026-08-31 }
-- { id: ali-r, display: Ali R., strava_names: ["Ali Example"], joined: 2026-08-31 }
-- { id: kev-b, display: Kev B., strava_names: ["Kev Example"], joined: 2026-08-31 }
-- { id: liz-h, display: Liz H., strava_names: ["Liz Example"], joined: 2026-08-31 }
-- { id: dan-w, display: Dan W., strava_names: ["Dan Example"], joined: 2026-09-20 }
+- { id: tom-c, display: Tom C., strava_id: 90000001, strava_names: ["Tom Example"], joined: 2026-08-31 }
+- { id: meg-g, display: Meg G., strava_id: 90000002, strava_names: ["Meg Example"], joined: 2026-08-31 }
+- { id: jon-a, display: Jon A., strava_id: 90000003, strava_names: ["Jon Example"], joined: 2026-08-31 }
+- { id: sam-p, display: Sam P., strava_id: 90000004, strava_names: ["Sam Example"], joined: 2026-08-31 }
+- { id: ali-r, display: Ali R., strava_id: 90000005, strava_names: ["Ali Example"], joined: 2026-08-31 }
+- { id: kev-b, display: Kev B., strava_id: 90000006, strava_names: ["Kev Example"], joined: 2026-08-31 }
+- { id: liz-h, display: Liz H., strava_id: 90000007, strava_names: ["Liz Example"], joined: 2026-08-31 }
+- { id: dan-w, display: Dan W., strava_id: 90000008, strava_names: ["Dan Example"], joined: 2026-09-20 }

@@ -5,6 +5,7 @@ const path = require('node:path');
 const yaml = require('js-yaml');
 const { computeStandings, formatTime, WEIGHTS } = require('../../lib/model');
 const { loadClubs, clubFor } = require('../../lib/clubs');
+const { validateMembers } = require('../../lib/members');
 const { usingSample, dir, CLUB_LOGO_DIR, CLUB_LOGO_URL } = require('../../lib/data-dir');
 
 function load(dir, file) {
@@ -53,6 +54,11 @@ module.exports = function () {
 	const members = load(dir, 'members.yml');
 	const routes = load(dir, 'routes.yml');
 	const events = loadEvents(dir);
+	const memberCheck = validateMembers(members);
+	memberCheck.warnings.forEach((w) => console.warn(`[standings] ${w}`));
+	if (memberCheck.errors.length) {
+		throw new Error(`[standings] members.yml: ${memberCheck.errors.join('; ')}`);
+	}
 	const clubs = loadClubs(load(dir, 'clubs.yml'), {
 		logoExists: (file) => fs.existsSync(path.join(dir, CLUB_LOGO_DIR, file)),
 		logoUrl: CLUB_LOGO_URL,
