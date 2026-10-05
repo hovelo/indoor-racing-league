@@ -12,7 +12,7 @@ eleventyComputed:
   title: "{% if event.type == 'qualifier' %}Qualifier{% else %}Event {{ event.number }}{% endif %}: {{ event.route.name }}"
   homeHref: "/l/{{ event.league.slug }}/"
 ---
-{%- from "macros.njk" import eventNum, typeBadge, statusBadge, place, routeName, dates -%}
+{%- from "macros.njk" import eventNum, typeBadge, statusBadge, place, routeName, dates, clubLogo, stravaClubButton -%}
 {%- set hasSegments = event.segments | length %}
 {%- set ranked = event.results | length %}
 {%- set riders = ranked + (event.unbenchmarked | length) %}
@@ -48,6 +48,15 @@ eleventyComputed:
 </section>
 
 <div class="wrap">
+	{%- set club = event.league.club %}
+	{%- if club and club.strava and event.status != 'closed' %}
+	<div class="club-strip panel">
+		{{ clubLogo(club, 'md') }}
+		<p>Rides count once they're on the <strong>{{ club.name }}</strong> Strava leaderboard. Make sure you're in the club and your ride isn't set to &ldquo;Only You&rdquo;.</p>
+		{{ stravaClubButton(club) }}
+	</div>
+	{%- endif %}
+
 	{%- if event.notes %}
 	<p class="notice">{{ event.notes }}</p>
 	{%- endif %}

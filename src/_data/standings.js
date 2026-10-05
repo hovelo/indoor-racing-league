@@ -4,9 +4,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const yaml = require('js-yaml');
 const { computeStandings, formatTime, WEIGHTS } = require('../../lib/model');
-
-const PRIVATE_DIR = path.join(__dirname, 'league');
-const SAMPLE_DIR = path.join(__dirname, '..', '..', 'sample-data');
+const { loadClubs, clubFor } = require('../../lib/clubs');
+const { usingSample, dir, CLUB_LOGO_DIR, CLUB_LOGO_URL } = require('../../lib/data-dir');
 
 function load(dir, file) {
 	const p = path.join(dir, file);
@@ -46,8 +45,6 @@ function markTies(rows) {
 }
 
 module.exports = function () {
-	const usingSample = !fs.existsSync(path.join(PRIVATE_DIR, 'leagues.yml'));
-	const dir = usingSample ? SAMPLE_DIR : PRIVATE_DIR;
 	if (usingSample) {
 		console.warn('[standings] src/_data/league/ not found — building from sample-data/');
 	}
@@ -56,6 +53,11 @@ module.exports = function () {
 	const members = load(dir, 'members.yml');
 	const routes = load(dir, 'routes.yml');
 	const events = loadEvents(dir);
+	const clubs = loadClubs(load(dir, 'clubs.yml'), {
+		logoExists: (file) => fs.existsSync(path.join(dir, CLUB_LOGO_DIR, file)),
+		logoUrl: CLUB_LOGO_URL,
+	});
+	clubs.warnings.forEach((w) => console.warn(`[standings] ${w}`));
 	const today = new Date().toISOString().slice(0, 10);
 
 	const out = { usingSample, leagues: [], events: [] };
@@ -63,6 +65,10 @@ module.exports = function () {
 	for (const league of leagues) {
 		const result = computeStandings(league, members, routes, events);
 		result.warnings.forEach((w) => console.warn(`[standings] ${w}`));
+		const { club, warning: clubWarning } = clubFor(league, clubs.byId);
+		if (clubWarning) {
+			console.warn(`[standings] ${clubWarning}`);
+		}
 
 		const leagueEvents = result.events.map((e, i) => {
 			// Strip internal fields so nothing raw can reach a template.
@@ -76,7 +82,7 @@ module.exports = function () {
 				status: status(e.window, today),
 				daysLeft: daysBetween(today, e.window.to) + 1,
 				number: e.type === 'qualifier' ? null : result.events.slice(0, i + 1).filter((x) => x.type !== 'qualifier').length,
-				league: { slug: league.slug, name: league.name },
+				league: { slug: league.slug, name: league.name, club },
 				participation: result.settings.points.participation,
 				segmentBonus: result.settings.segment_bonus,
 				weights: e.route_type ? WEIGHTS[e.route_type] : null,
@@ -93,6 +99,7 @@ module.exports = function () {
 			slug: league.slug,
 			name: league.name,
 			platform: league.platform,
+			club,
 			target_minutes: league.target_minutes,
 			riders: (league.members || []).length,
 			table: markTies(result.table),

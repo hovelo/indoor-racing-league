@@ -16,13 +16,25 @@
 	<link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
+	{%- from "macros.njk" import clubLogo -%}
+	{#- League and event pages belong to a club; the public homepage never shows one. -#}
+	{%- set pageClub = null %}
+	{%- if private %}{% set pageClub = league.club if league else (event.league.club if event else null) %}{% endif %}
 	<header class="site-header">
 		<div class="wrap site-header-inner">
 			<a class="brand" href="{% if private %}{{ homeHref or '/' }}{% else %}/{% endif %}">
 				<span class="brand-mark" aria-hidden="true">IRL</span>
-				<span class="brand-name">{{ site.name }}</span>
+				<span class="brand-name{% if pageClub %} hide-xs{% endif %}">{{ site.name }}</span>
 			</a>
+			{%- if pageClub %}
+			<span class="header-club">
+				<span class="header-club-x" aria-hidden="true">&times;</span>
+				{{ clubLogo(pageClub, 'sm') }}
+				<span class="header-club-name">{{ pageClub.name }}</span>
+			</span>
+			{%- else %}
 			<a class="button button-ghost" href="/#join">Start a league</a>
+			{%- endif %}
 		</div>
 	</header>
 
@@ -32,6 +44,9 @@
 
 	<footer class="site-footer">
 		<div class="wrap site-footer-inner">
+			{%- if pageClub %}
+			<p>A league for {% if pageClub.url %}<a href="{{ pageClub.url }}" rel="noopener">{{ pageClub.name }}</a>{% else %}{{ pageClub.name }}{% endif %}{% if pageClub.strava %} · <a href="{{ pageClub.strava }}" rel="noopener">Strava club</a>{% endif %}</p>
+			{%- endif %}
 			<p>Made by <a href="https://www.mikestreety.co.uk/">Mike Street</a>.</p>
 			{%- if standings.usingSample %}
 			<p>Built from sample data.</p>

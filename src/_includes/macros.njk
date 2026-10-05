@@ -21,3 +21,12 @@
 {%- macro dates(e) -%}
 {{ e.window.from | shortDate }} &ndash; {{ e.window.to | shortDate }}
 {%- endmacro -%}
+
+{#- Club logo, or a monogram from the club's name when there's no logo. -#}
+{%- macro clubLogo(club, size = 'md') -%}
+{% if club.logo %}<img class="club-logo club-logo-{{ size }}" src="{{ club.logo }}" alt="" width="40" height="40" loading="lazy" decoding="async">{% else %}<span class="club-logo club-logo-{{ size }} club-monogram" aria-hidden="true">{{ club.name | first | upper }}</span>{% endif %}
+{%- endmacro -%}
+
+{%- macro stravaClubButton(club, cls = '') -%}
+{% if club and club.strava %}<a class="button button-strava {{ cls }}" href="{{ club.strava }}" rel="noopener">{{ club.name }} on Strava <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg></a>{% endif %}
+{%- endmacro -%}

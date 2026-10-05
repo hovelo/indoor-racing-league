@@ -18,7 +18,23 @@ To build with real data, clone the private data repo into `src/_data/league/` (g
 - `src/_data/standings.js` — loads the YAML, runs the model, strips raw times, returns template data
 - `src/index.njk` — public overview
 - `src/league.njk` → `/l/{slug}/`, `src/event.njk` → `/l/{slug}/{event}/` (noindex, no-referrer, never linked)
+- `lib/clubs.js` — clubs (name, logo, Strava club) and which league belongs to which
 - `sample-data/` — fake riders for working without the private repo
+
+## Clubs
+
+A league can belong to a club (`club:` in `leagues.yml`, an id from `clubs.yml`). The club's logo and name appear in the header, league hero and footer of league and event pages, with a Strava club button on the league page, a join reminder on open and upcoming events, and a Club row in the Rules section. Clubs never appear on the public homepage.
+
+```yaml
+# clubs.yml
+- id: sample-cc
+  name: Sample CC
+  logo: sample-cc.svg        # in clubs/ next to clubs.yml, or a full https:// URL
+  strava: sample-cc          # Strava club slug or ID, or the full club URL
+  url: https://example.com/  # optional, linked in the footer
+```
+
+Local logos are copied to `/images/clubs/`. Square images work best; they're shown in a circle.
 
 ## Design
 

@@ -12,17 +12,24 @@ eleventyComputed:
   title: "{{ league.name }}"
   homeHref: "/l/{{ league.slug }}/"
 ---
-{%- from "macros.njk" import eventNum, typeBadge, statusBadge, place, routeName, dates -%}
+{%- from "macros.njk" import eventNum, typeBadge, statusBadge, place, routeName, dates, clubLogo, stravaClubButton -%}
 {%- set feature = league.current or league.next %}
 <section class="hero">
 	<div class="wrap hero-inner">
 		<div class="hero-main">
+			{%- if league.club %}
+			<p class="hero-club">{{ clubLogo(league.club, 'lg') }}<span><span class="kicker">{{ league.club.name }}</span><span class="hero-club-platform">{{ league.platform | capitalize }}</span></span></p>
+			{%- else %}
 			<p class="kicker">{{ league.platform | capitalize }}</p>
+			{%- endif %}
 			<h1 class="display">{{ league.name }}</h1>
 			<ul class="hero-stats">
 				<li><strong>{{ league.riders }}</strong> riders</li>
 				<li><strong>{{ league.eventsDone }}/{{ league.eventColumns | length }}</strong> events</li>
 			</ul>
+			{%- if league.club and league.club.strava %}
+			<p class="hero-actions">{{ stravaClubButton(league.club) }}</p>
+			{%- endif %}
 		</div>
 		{%- if feature %}
 		<a class="feature-card" href="/l/{{ league.slug }}/{{ feature.id }}/">
@@ -140,6 +147,9 @@ eleventyComputed:
 			</div>
 		</div>
 		<dl class="league-rules panel">
+			{%- if league.club %}
+			<div><dt>Club</dt><dd>{% if league.club.strava %}Join <a href="{{ league.club.strava }}" rel="noopener">{{ league.club.name }} on Strava</a> and keep your Strava sync on. Results come from the club leaderboard, so rides only count if you're in the club and they aren't set to &ldquo;Only You&rdquo;.{% else %}{{ league.club.name }}.{% endif %}</dd></div>
+			{%- endif %}
 			{%- if rules.qualifier %}
 			<div><dt>Qualifier</dt><dd><a href="/l/{{ league.slug }}/{{ rules.qualifier.id }}/">{{ rules.qualifier.route.name }}</a>{% if rules.qualifier.route.world %}, {{ rules.qualifier.route.world }}{% endif %}. Ride it as often as you like in the window; your best effort on each segment counts.</dd></div>
 			{%- endif %}

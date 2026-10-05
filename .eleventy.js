@@ -1,5 +1,14 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const { dir: dataDir, CLUB_LOGO_DIR, CLUB_LOGO_URL } = require('./lib/data-dir');
+
 module.exports = function (eleventyConfig) {
 	eleventyConfig.addPassthroughCopy('src/css');
+	// Club logos live with the league data (private repo or sample-data/).
+	const logos = path.join(dataDir, CLUB_LOGO_DIR);
+	if (fs.existsSync(logos)) {
+		eleventyConfig.addPassthroughCopy({ [path.relative(__dirname, logos)]: CLUB_LOGO_URL.replace(/^\/|\/$/g, '') });
+	}
 	eleventyConfig.addPassthroughCopy('src/images');
 	eleventyConfig.addPassthroughCopy('src/_headers');
 	// Self-hosted fonts (latin subset only), referenced from css/style.css.
