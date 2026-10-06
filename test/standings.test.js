@@ -1,7 +1,7 @@
 // Worked example from 02-handicap-model.md as a fixture. Run: npm test
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { computeStandings, formatTime, WEIGHTS } = require('../lib/model');
+const { computeStandings, formatTime, median, WEIGHTS } = require('../lib/model');
 
 const members = [
 	{ id: 'a', display: 'Rider A.' },
@@ -161,7 +161,8 @@ test('normal events score their designated segments', () => {
 		},
 	}];
 	const m = [...members, { id: 'd', display: 'Rider D.' }];
-	const l = { ...league, members: ['a', 'b', 'c', 'd'] };
+	// Raw-mode coverage: raw ordering, and an unbenchmarked rider can score bonus.
+	const l = { ...league, members: ['a', 'b', 'c', 'd'], settings: { segment_bonus_mode: 'raw' } };
 	const ev = structuredClone(events);
 	ev[1].bonus_segments = ['kom', 'nope'];
 	ev[1].results.push(
@@ -417,4 +418,243 @@ test('settings.alpha sets the update rate; absent behaves as 0.3', () => {
 	near(half.benchmarks.a.climb, Number(((150 / 170) * (1 + 0.5 * 0.35 * (error - 1))).toFixed(6)), 6);
 	near(half.benchmarks.a.flat, Number(((720 / 758) * (1 + 0.5 * 0.45 * (error - 1))).toFixed(6)), 6);
 	assert.notDeepEqual(half.benchmarks, at(0.3).benchmarks);
+});
+
+// --- Handicapped bonus segments (Step 4b) and the bonus segment update (Step 5) ---
+
+/** The spec's worked example with the sprint bonus: e1 rolling, bonus_segments [sprint]. */
+const withSprint = (sprints = { a: '0:30', b: '0:29', c: '0:33' }) => {
+	const ev = structuredClone(events);
+	ev[1].bonus_segments = ['sprint'];
+	for (const [member, time] of Object.entries(sprints)) {
+		ev[1].results.push({ member, segment: 'sprint', time, date: '2026-10-20' });
+	}
+	return ev;
+};
+const segPlaces = (seg) => seg.results.map((x) => [x.member, x.place, x.points]);
+const byMember = (rows) => Object.fromEntries(rows.map((x) => [x.member, x]));
+
+test('worked example with the sprint bonus (handicap)', () => {
+	const out = computeStandings(league, members, routes, withSprint());
+	const e1 = out.events.find((e) => e.id === 'e1');
+	assert.equal(out.settings.segment_bonus_mode, 'handicap');
+
+	const sprint = e1.segments[0];
+	assert.equal(sprint.mode, 'handicap');
+	// Adjusted: A 30/0.9375 = 32.0, B 29/1 = 29.0, C 33/1.125 = 29.33.
+	// The spec's table puts C 2nd, but ties are compared to the nearest second,
+	// so C's 29.33 rounds to 29 and ties B: both share 1st (3 points each).
+	assert.deepEqual(segPlaces(sprint), [['b', 1, 3], ['c', 1, 3], ['a', 3, 1]]);
+	assert.ok(sprint.results.every((x) => !('time' in x) && !('adjusted' in x)));
+
+	// Spec says A 17, B 18, C 19; with the tie C gets 3 bonus, not 2.
+	const pts = Object.fromEntries(e1.results.map((x) => [x.member, x.points]));
+	assert.deepEqual(pts, { a: 17, b: 18, c: 20 });
+
+	const expected = {
+		a: [0.8814, 0.9486, 0.9557],
+		b: [1.0000, 1.0000, 0.9900],
+		c: [1.1741, 1.1106, 1.1162],
+	};
+	for (const [id, [climb, flat, sprintR]] of Object.entries(expected)) {
+		near(out.benchmarks[id].climb, climb, 4);
+		near(out.benchmarks[id].flat, flat, 4);
+		near(out.benchmarks[id].sprint, sprintR, 4);
+	}
+	assert.equal(sprint.benchmarksUpdated, true);
+});
+
+test('raw mode: same event ranks B, A, C and r_sprint gets the route update only', () => {
+	const l = { ...league, settings: { segment_bonus_mode: 'raw' } };
+	const out = computeStandings(l, members, routes, withSprint());
+	const sprint = out.events[1].segments[0];
+	assert.equal(sprint.mode, 'raw');
+	assert.deepEqual(segPlaces(sprint), [['b', 1, 3], ['a', 2, 2], ['c', 3, 1]]);
+	near(out.benchmarks.a.sprint, 0.9369, 4);
+	near(out.benchmarks.c.sprint, 1.1237, 4);
+	assert.equal(out.benchmarks.b.sprint, 1);
+	// Climb and flat match the plain worked example.
+	const plain = computeStandings(league, members, routes, events);
+	for (const id of ['a', 'b', 'c']) {
+		assert.equal(out.benchmarks[id].climb, plain.benchmarks[id].climb);
+		assert.equal(out.benchmarks[id].flat, plain.benchmarks[id].flat);
+	}
+});
+
+test('an unrecognised segment_bonus_mode warns and falls back to handicap', () => {
+	const out = computeStandings({ ...league, settings: { segment_bonus_mode: 'fastest' } }, members, routes, withSprint());
+	assert.equal(out.settings.segment_bonus_mode, 'handicap');
+	assert.ok(out.warnings.some((w) => w.includes('segment_bonus_mode "fastest"')));
+	assert.ok(!computeStandings(league, members, routes, events).warnings.some((w) => w.includes('segment_bonus_mode')));
+});
+
+test('the qualifier bonus is raw whatever the mode', () => {
+	for (const m of ['handicap', 'raw']) {
+		const out = computeStandings({ ...league, settings: { segment_bonus_mode: m } }, members, routes, events);
+		const qual = out.events[0];
+		assert.deepEqual(Object.fromEntries(qual.results.map((r) => [r.member, r.points])), { a: 8, b: 6, c: 4 });
+		assert.ok(qual.segments.every((s) => s.mode === 'raw'));
+	}
+});
+
+test('unbenchmarked riders: no bonus in handicap mode but count towards the segment median; bonus in raw mode', () => {
+	// D fastest on the road sprint, but unbenchmarked.
+	const ev = withSprint({ a: '0:30', b: '0:29', c: '0:33', d: '0:25' });
+	ev[1].results.push({ member: 'd', segment: 'lap', time: '26:00', date: '2026-10-21' });
+
+	const h = computeStandings(withD.league, withD.members, routes, ev);
+	const hs = h.events[1].segments[0];
+	assert.ok(hs.results.every((x) => x.member !== 'd'));
+	assert.deepEqual(segPlaces(hs), [['b', 1, 3], ['c', 1, 3], ['a', 3, 1]]);
+	assert.deepEqual(h.events[1].unbenchmarked.map((x) => [x.member, x.bonus, x.points]), [['d', 0, 2]]);
+	// Segment median of 25, 29, 30, 33 is 29.5 (D included), not 30.
+	const route = h.events[1].results.find((x) => x.member === 'a');
+	const eventMedian = median([1500, 1640, 1830, 1560]);
+	const routeError = (1500 / eventMedian) / route._blended;
+	const seg = 1 + 0.3 * ((30 / 29.5) / (30 / 32) - 1);
+	const expected = (30 / 32) * (1 + 0.3 * 0.2 * (routeError - 1)) * seg;
+	near(h.benchmarks.a.sprint, Number(expected.toFixed(6)), 6);
+
+	const r = computeStandings({ ...withD.league, settings: { segment_bonus_mode: 'raw' } }, withD.members, routes, ev);
+	assert.deepEqual(segPlaces(r.events[1].segments[0])[0], ['d', 1, 3]);
+	assert.deepEqual(r.events[1].unbenchmarked.map((x) => [x.member, x.points]), [['d', 5]]);
+});
+
+test('a challenge ranks its bonus segment handicapped but never moves benchmarks', () => {
+	const challenge = {
+		id: 'ch', league: 'test', type: 'challenge', route: 'hilly', route_type: 'punchy',
+		score_segment: 'lap', bonus_segments: ['sprint'],
+		window: { from: '2026-10-19', to: '2026-11-01' },
+		results: [
+			{ member: 'a', segment: 'lap', time: '14:00', date: '2026-10-21' },
+			{ member: 'b', segment: 'lap', time: '15:00', date: '2026-10-21' },
+			{ member: 'c', segment: 'lap', time: '16:00', date: '2026-10-21' },
+			{ member: 'a', segment: 'sprint', time: '0:30', date: '2026-10-21' },
+			{ member: 'b', segment: 'sprint', time: '0:29', date: '2026-10-21' },
+			{ member: 'c', segment: 'sprint', time: '0:33', date: '2026-10-21' },
+		],
+	};
+	const base = computeStandings(league, members, routes, events);
+	const out = computeStandings(league, members, routes, [...events, challenge]);
+	const seg = out.events.find((e) => e.id === 'ch').segments[0];
+	assert.equal(seg.mode, 'handicap');
+	// Ratios after e1 (route update only): B 29.0, C 33/1.124 = 29.4 (rounds to 29, a tie), A 30/0.937 = 32.
+	assert.deepEqual(segPlaces(seg), [['b', 1, 3], ['c', 1, 3], ['a', 3, 1]]);
+	assert.ok(!seg.benchmarksUpdated);
+	assert.deepEqual(out.benchmarks, base.benchmarks);
+});
+
+test('a bonus segment with fewer than 3 times is scored but not used to update', () => {
+	const ev = withSprint({ a: '0:30', b: '0:29' });
+	const out = computeStandings(league, members, routes, ev);
+	const seg = out.events[1].segments[0];
+	assert.deepEqual(segPlaces(seg), [['b', 1, 3], ['a', 2, 2]]);
+	assert.equal(seg.benchmarksUpdated, false);
+	// Route update still runs (3 finishers), so ratios match the plain worked example.
+	assert.deepEqual(out.benchmarks, computeStandings(league, members, routes, events).benchmarks);
+});
+
+test('renormalised league: a sprint bonus segment can only be scored raw', () => {
+	const r = [{ id: 'nosprint', segments: { lap: {}, kom: {} } }, { id: 'hilly', segments: { lap: {}, kom: {}, sprint: {} } }];
+	const ev = structuredClone(events);
+	ev[0].route = 'nosprint';
+	ev[0].results = ev[0].results.filter((x) => x.segment !== 'sprint');
+	ev[1].bonus_segments = ['kom', 'sprint'];
+	ev[1].results.push(
+		{ member: 'a', segment: 'kom', time: '2:20', date: '2026-10-20' },
+		{ member: 'b', segment: 'kom', time: '2:50', date: '2026-10-20' },
+		{ member: 'c', segment: 'kom', time: '3:20', date: '2026-10-20' },
+		{ member: 'a', segment: 'sprint', time: '0:30', date: '2026-10-20' },
+		{ member: 'b', segment: 'sprint', time: '0:29', date: '2026-10-20' },
+		{ member: 'c', segment: 'sprint', time: '0:33', date: '2026-10-20' }
+	);
+
+	const h = computeStandings(league, members, r, ev);
+	const e1 = h.events[1];
+	assert.ok(h.warnings.some((w) => w.includes('"sprint"') && w.includes('no sprint segment')));
+	assert.deepEqual(e1.segments.map((s) => s.key), ['kom']);
+	// KOM updates r_climb: compare with the same event without the KOM bonus.
+	const noBonus = structuredClone(ev);
+	noBonus[1].bonus_segments = [];
+	const plain = computeStandings(league, members, r, noBonus);
+	assert.notEqual(h.benchmarks.a.climb, plain.benchmarks.a.climb);
+	assert.equal(h.benchmarks.a.flat, plain.benchmarks.a.flat);
+	for (const id of ['a', 'b', 'c']) {
+		assert.ok(!('sprint' in h.benchmarks[id]));
+	}
+
+	const raw = computeStandings({ ...league, settings: { segment_bonus_mode: 'raw' } }, members, r, ev);
+	const sprint = raw.events[1].segments.find((s) => s.key === 'sprint');
+	assert.deepEqual(segPlaces(sprint), [['b', 1, 3], ['a', 2, 2], ['c', 3, 1]]);
+	assert.ok(!raw.warnings.some((w) => w.includes('"sprint"')));
+	assert.ok(!('sprint' in raw.benchmarks.a));
+});
+
+test('two bonus segments of the same type both multiply into r_climb', () => {
+	const r = [{ id: 'f8', segments: { lap: {}, kom_rev: { type: 'climb' }, kom: {}, sprint: {} } }];
+	const row = (member, lap, komRev, kom, sprint, date = '2026-10-07') => [
+		{ member, segment: 'lap', time: lap, date },
+		{ member, segment: 'kom_rev', time: komRev, date },
+		{ member, segment: 'kom', time: kom, date },
+		{ member, segment: 'sprint', time: sprint, date },
+	];
+	const ev = [
+		{
+			id: 'q', league: 'test', type: 'qualifier', route: 'f8',
+			window: { from: '2026-10-05', to: '2026-10-18' },
+			results: [...row('a', 2800, 300, 150, 30), ...row('b', 2900, 320, 160, 32), ...row('c', 3000, 340, 170, 34)],
+		},
+		{
+			id: 'e1', league: 'test', type: 'event', route: 'f8', route_type: 'rolling', score_segment: 'lap',
+			bonus_segments: ['kom_rev', 'kom'],
+			window: { from: '2026-10-19', to: '2026-11-01' },
+			results: [...row('a', 2850, 290, 160, 30, '2026-10-20'), ...row('b', 2880, 330, 150, 31, '2026-10-20'), ...row('c', 2950, 335, 172, 35, '2026-10-20')],
+		},
+	];
+	const only = (keys) => {
+		const e = structuredClone(ev);
+		e[1].bonus_segments = keys;
+		return computeStandings(league, members, r, e);
+	};
+	const none = only([]);
+	const both = only(['kom_rev', 'kom']);
+	const swapped = only(['kom', 'kom_rev']);
+	const komRev = only(['kom_rev']);
+	const kom = only(['kom']);
+	for (const id of ['a', 'b', 'c']) {
+		// Each factor is relative to the route-only result; together they multiply.
+		const fRev = komRev.benchmarks[id].climb / none.benchmarks[id].climb;
+		const fKom = kom.benchmarks[id].climb / none.benchmarks[id].climb;
+		near(both.benchmarks[id].climb, Number((none.benchmarks[id].climb * fRev * fKom).toFixed(9)), 9);
+		near(swapped.benchmarks[id].climb, Number(both.benchmarks[id].climb.toFixed(9)), 9);
+		assert.equal(both.benchmarks[id].flat, none.benchmarks[id].flat);
+		assert.equal(both.benchmarks[id].sprint, none.benchmarks[id].sprint);
+	}
+	assert.notEqual(both.benchmarks.a.climb, none.benchmarks.a.climb);
+});
+
+test('a lap bonus segment is handicapped by blended and does not add a segment update', () => {
+	const ev = structuredClone(events);
+	ev[1].bonus_segments = ['lap'];
+	const out = computeStandings(league, members, routes, ev);
+	const seg = out.events[1].segments[0];
+	// Same ordering as the adjusted results: C, A, B.
+	assert.deepEqual(segPlaces(seg), [['c', 1, 3], ['a', 2, 2], ['b', 3, 1]]);
+	assert.deepEqual(out.benchmarks, computeStandings(league, members, routes, events).benchmarks);
+});
+
+test('the lap-ratio fallback rider is adjusted by that ratio on a bonus segment', () => {
+	// C has no qualifier sprint: every ratio = lap ratio 1080/960 = 1.125.
+	// Sprint median is now A and B only (31), so r_sprint A 30/31, B 32/31.
+	const run = (cSprint) => {
+		const ev = withSprint({ a: '0:30', b: '0:29', c: cSprint });
+		ev[0].results = ev[0].results.filter((x) => !(x.member === 'c' && x.segment === 'sprint'));
+		return computeStandings(league, members, routes, ev);
+	};
+	const out = run('0:33');
+	assert.ok(out.warnings.some((w) => w.includes('c missing climb/sprint')));
+	// Adjusted: B 29/(32/31) = 28.1, C 33/1.125 = 29.3, A 30/(30/31) = 31.0.
+	assert.deepEqual(segPlaces(out.events[1].segments[0]), [['b', 1, 3], ['c', 2, 2], ['a', 3, 1]]);
+	// C on 0:35: 35/1.125 = 31.1, which rounds to A's 31 and shares 2nd.
+	assert.deepEqual(segPlaces(run('0:35').events[1].segments[0]), [['b', 1, 3], ['a', 2, 2], ['c', 2, 2]]);
 });

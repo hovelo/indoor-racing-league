@@ -142,6 +142,8 @@ module.exports = function () {
 				// Place at which finishing points bottom out at the minimum.
 				floorPlace: pts.step > 0 ? Math.ceil((pts.first - pts.min) / pts.step) + 1 : null,
 				segmentBonus: result.settings.segment_bonus,
+				// handicap | raw: how event and challenge bonus segments are ranked (the qualifier is always raw).
+				segmentBonusMode: result.settings.segment_bonus_mode,
 				dropWorst: result.settings.drop_worst,
 				targetMinutes: league.target_minutes || null,
 				qualifier: qualifier ? { id: qualifier.id, route: qualifier.route, window: qualifier.window } : null,

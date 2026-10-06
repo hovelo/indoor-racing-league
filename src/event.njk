@@ -161,7 +161,7 @@ eleventyComputed:
 					<li><strong>{{ r.display }}</strong> <span class="mono">{{ r.points }}</span></li>
 					{%- endfor %}
 				</ul>
-				<p class="muted">Finished, but not ranked until their qualifier takes effect.</p>
+				<p class="muted">Finished, but not ranked until their qualifier takes effect{% if hasSegments and event.segments[0].mode == 'handicap' %}, so no segment bonus either{% endif %}.</p>
 			</div>
 			{%- endif %}
 		</div>
@@ -172,7 +172,7 @@ eleventyComputed:
 	<section class="section">
 		<div class="section-head">
 			<h2>Bonus segments</h2>
-			<p class="section-note">Segment names link to Strava, where you can see raw times (filter the leaderboard to the club)</p>
+			<p class="section-note">{% if event.segments[0].mode == 'handicap' %}Ranked against each rider's own benchmark for the segment, so ranked riders only · {% elif event.type != 'qualifier' %}Fastest raw times · {% endif %}segment names link to Strava, where you can see raw times (filter the leaderboard to the club)</p>
 		</div>
 		<div class="segments">
 			{%- for seg in event.segments %}
@@ -211,7 +211,7 @@ eleventyComputed:
 		{%- if event.benchmarksUpdated %}
 		<div>
 			<h3>Benchmarks moved</h3>
-			<p>Everyone who rode had their benchmark nudged towards how they rode this one, ready for the next event.</p>
+			<p>Everyone who rode had their benchmark nudged towards how they rode this one, ready for the next event{% for seg in event.segments %}{% if seg.benchmarksUpdated %}{% if loop.first %}. Bonus segments also tightened the matching climb or sprint benchmark{% endif %}{% endif %}{% endfor %}.</p>
 		</div>
 		{%- endif %}
 	</section>

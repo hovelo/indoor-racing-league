@@ -13,6 +13,7 @@
       step: 1                # fewer per place
       min: 1                 # floor for any finisher
       participation: 2       # added for every valid finish (qualifier included)
-    segment_bonus: [3, 2, 1] # top raw times on each designated bonus segment
+    segment_bonus: [3, 2, 1] # top places on each designated bonus segment
+    segment_bonus_mode: handicap  # handicap: ranked against each rider's own benchmark; raw: fastest raw times. Qualifier is always raw
     drop_worst: 0            # worst event scores excluded from the season total
     alpha: 0.3               # benchmark update rate, fixed for the league

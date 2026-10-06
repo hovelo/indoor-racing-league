@@ -130,7 +130,7 @@ eleventyComputed:
 					<li><span class="points-value">+{{ pts.participation }}</span><span>for every finish, so everyone who rides scores</span></li>
 					{%- endif %}
 					{%- if bonusCount %}
-					<li><span class="points-value">+{{ rules.segmentBonus | join('/') }}</span><span>to the {{ words[bonusCount] if bonusCount < words | length else bonusCount + ' fastest riders' }} on each bonus segment, on raw times, when an event has them</span></li>
+					<li><span class="points-value">+{{ rules.segmentBonus | join('/') }}</span><span>to the {{ words[bonusCount] if bonusCount < words | length else bonusCount + ' fastest riders' }} on each bonus segment, {% if rules.segmentBonusMode == 'raw' %}on raw times{% else %}against their own benchmark for it{% endif %}, when an event has them</span></li>
 					{%- endif %}
 				</ul>
 			</div>
@@ -163,7 +163,7 @@ eleventyComputed:
 			{%- endif %}
 			<div><dt>Dropped results</dt><dd>{% if rules.dropWorst %}Your worst {% if rules.dropWorst == 1 %}event score doesn't{% else %}{{ rules.dropWorst }} event scores don't{% endif %} count. Missed events are dropped first; the qualifier is never dropped.{% else %}None: every event counts.{% endif %}</dd></div>
 			<div><dt>Ties</dt><dd>Riders level to the second share the higher place and its points.</dd></div>
-			<div><dt>No qualifier yet?</dt><dd>You can still ride events{% if pts.participation %} and score {{ pts.participation }} for finishing{% endif %}{% if bonusCount %}, plus any segment bonus{% endif %}. Ride the qualifier route to get ranked.</dd></div>
+			<div><dt>No qualifier yet?</dt><dd>You can still ride events{% if pts.participation %} and score {{ pts.participation }} for finishing{% endif %}{% if bonusCount and rules.segmentBonusMode == 'raw' %}, plus any segment bonus{% endif %}. Ride the qualifier route to get ranked.</dd></div>
 		</dl>
 	</section>
 </div>
