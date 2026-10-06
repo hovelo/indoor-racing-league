@@ -1,7 +1,11 @@
 // Worked example from 02-handicap-model.md as a fixture. Run: npm test
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { computeStandings, formatTime, median, WEIGHTS } = require('../lib/model');
+const { computeStandings: compute, formatTime, median, WEIGHTS } = require('../lib/model');
+
+// Tests check raw and blended values, which the model only exposes with debug on.
+const computeStandings = (league, members, routes, events, opts = {}) =>
+	compute(league, members, routes, events, { debug: true, ...opts });
 
 const members = [
 	{ id: 'a', display: 'Rider A.' },
@@ -657,4 +661,65 @@ test('the lap-ratio fallback rider is adjusted by that ratio on a bonus segment'
 	assert.deepEqual(segPlaces(out.events[1].segments[0]), [['b', 1, 3], ['c', 2, 2], ['a', 3, 1]]);
 	// C on 0:35: 35/1.125 = 31.1, which rounds to A's 31 and shares 2nd.
 	assert.deepEqual(segPlaces(run('0:35').events[1].segments[0]), [['b', 1, 3], ['a', 2, 2], ['c', 2, 2]]);
+});
+
+// --- Review fixes ---
+
+test('a qualifier window can be any whole number of Monday–Sunday weeks', () => {
+	const at = (to) => {
+		const ev = structuredClone(events);
+		ev[0].window.to = to;
+		return computeStandings(league, members, routes, ev).warnings.filter((w) => w.includes('window should'));
+	};
+	assert.deepEqual(at('2026-10-11'), []); // one week
+	assert.deepEqual(at('2026-10-25'), []); // three weeks
+	assert.equal(at('2026-10-14').length, 1); // ends on a Wednesday
+});
+
+test('drop_worst only drops events that have opened by today', () => {
+	const upcoming = { ...e2, results: [] };
+	const l = { ...league, settings: { drop_worst: 1 } };
+	const ev = [...structuredClone(events), upcoming];
+	// Mid-season (e1 closed, e2 not open): A's e1 points are A's worst opened score, so dropped.
+	const mid = computeStandings(l, members, routes, ev, { today: '2026-10-25' });
+	const aMid = mid.table.find((r) => r.member === 'a');
+	assert.equal(aMid.total, aMid.qualifier);
+	// Without today, the empty upcoming event is the 0 that's dropped, so nothing changes.
+	const noToday = computeStandings(l, members, routes, ev);
+	const aAll = noToday.table.find((r) => r.member === 'a');
+	assert.equal(aAll.total, aAll.qualifier + aAll.events[0]);
+	assert.ok(!('rides' in aAll));
+});
+
+test('unbenchmarked riders are listed by name, with no place and no raw time', () => {
+	const m = [...members, { id: 'z', display: 'Zed Z.' }, { id: 'd', display: 'Dee D.' }];
+	const l = { ...league, members: ['a', 'b', 'c', 'd', 'z'] };
+	const ev = structuredClone(events);
+	ev[1].results.push(
+		{ member: 'z', segment: 'lap', time: '20:00', date: '2026-10-21' }, // fastest on the road
+		{ member: 'd', segment: 'lap', time: '40:00', date: '2026-10-21' }
+	);
+	const un = computeStandings(l, m, routes, ev).events[1].unbenchmarked;
+	assert.deepEqual(un.map((r) => r.member), ['d', 'z']);
+	assert.ok(un.every((r) => !('place' in r) && !('raw' in r)));
+});
+
+test('raw and blended are only in the output with debug on', () => {
+	const out = compute(league, members, routes, events);
+	assert.ok(out.events[1].results.every((r) => !('_raw' in r) && !('_blended' in r)));
+});
+
+test('the segment update median only counts riders with a full route time', () => {
+	const ev = withSprint();
+	// D has a sprint time but no lap time: no bonus, and not in the segment median.
+	ev[1].results.push({ member: 'd', segment: 'sprint', time: '0:20', date: '2026-10-21' });
+	const withPartial = computeStandings(withD.league, withD.members, routes, ev);
+	const without = computeStandings(league, members, routes, withSprint());
+	assert.deepEqual(withPartial.benchmarks.a, without.benchmarks.a);
+});
+
+test('a route segment with an unknown type warns', () => {
+	const r = [{ ...routes[0], segments: { ...routes[0].segments, odd: { type: 'descent' } } }];
+	const out = computeStandings(league, members, r, events);
+	assert.equal(out.warnings.filter((w) => w.includes('unknown type "descent"')).length, 1);
 });

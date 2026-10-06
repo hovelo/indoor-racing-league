@@ -1,12 +1,4 @@
-{%- macro eventNum(e) -%}
-{% if e.type == 'qualifier' %}Q{% elif e.type == 'challenge' %}C{% else %}{{ e.number | pad2 }}{% endif %}
-{%- endmacro -%}
-
-{#- "Qualifier", "Challenge" or "Event 02" -#}
-{%- macro eventLabel(e) -%}
-{% if e.type == 'qualifier' %}Qualifier{% elif e.type == 'challenge' %}Challenge{% else %}Event {{ eventNum(e) }}{% endif %}
-{%- endmacro -%}
-
+{#- Event labels (e.label, e.num, e.column) are set in _data/standings.js. -#}
 {%- macro typeBadge(e) -%}
 {% if e.type == 'qualifier' %}<span class="badge badge-qualifier">Qualifier</span>{% else %}<span class="badge badge-{{ e.route_type }}">{{ e.route_type }}</span>{% endif %}
 {%- endmacro -%}
