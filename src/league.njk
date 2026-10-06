@@ -152,7 +152,8 @@ eleventyComputed:
 			<div><dt>Club</dt><dd>{% if league.club.strava %}Join <a href="{{ league.club.strava }}" rel="noopener">{{ league.club.name }} on Strava</a> and keep your Strava sync on. Results come from the club leaderboard, so rides only count if you're in the club and they aren't set to &ldquo;Only You&rdquo;.{% else %}{{ league.club.name }}.{% endif %}</dd></div>
 			{%- endif %}
 			{%- if rules.qualifier %}
-			<div><dt>Qualifier</dt><dd><a href="/l/{{ league.slug }}/{{ rules.qualifier.id }}/">{{ rules.qualifier.route.name }}</a>{% if rules.qualifier.route.world %}, {{ rules.qualifier.route.world }}{% endif %}. Ride it as often as you like in the window; your best effort on each segment counts.</dd></div>
+			<div><dt>Qualifier</dt><dd><a href="/l/{{ league.slug }}/{{ rules.qualifier.id }}/">{{ rules.qualifier.route.name }}</a>{% if rules.qualifier.route.world %}, {{ rules.qualifier.route.world }}{% endif %}. Ride it as often as you like in the window; your best effort on each segment counts. You only qualify once.</dd></div>
+			<div><dt>Joining late</dt><dd>Ride the qualifier route any time before the last event closes. You get {% if pts.participation %}{{ pts.participation }} points for riding it (no segment bonus){% else %}no qualifier points{% endif %}, and you're handicapped from the next event that opens after your ride.</dd></div>
 			{%- endif %}
 			{%- if rules.challenge %}
 			<div><dt>Challenge</dt><dd><a href="/l/{{ league.slug }}/{{ rules.challenge.id }}/">{{ rules.challenge.route.name }}</a>{% if rules.challenge.route.world %}, {{ rules.challenge.route.world }}{% endif %}, open {{ dates(rules.challenge) }}. A short loop: ride it as often as you like alongside the events. Your best lap is handicapped and scored like an event, but it doesn't change your predicted times.</dd></div>

@@ -33,3 +33,9 @@ results:
   - { member: liz-h, segment: kom_rev, time: "5:44", date: 2026-09-08 }
   - { member: liz-h, segment: kom, time: "2:54", date: 2026-09-08 }
   - { member: liz-h, segment: sprint, time: "0:32", date: 2026-09-08 }
+  # Late qualifier: Dan joined after the window. Rode it once e1 had opened, so
+  # unbenchmarked in e1 and handicapped from e2. Participation points only.
+  - { member: dan-w, segment: lap, time: "50:40", date: 2026-09-21 }
+  - { member: dan-w, segment: kom_rev, time: "5:40", date: 2026-09-21 }
+  - { member: dan-w, segment: kom, time: "2:50", date: 2026-09-21 }
+  - { member: dan-w, segment: sprint, time: "0:31", date: 2026-09-21 }
