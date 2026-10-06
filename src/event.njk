@@ -40,8 +40,15 @@ eleventyComputed:
 				{%- if event.type == 'qualifier' %}{{ riders }} rider{% if riders != 1 %}s{% endif %}
 				{%- else %}{{ riders }} rider{% if riders != 1 %}s{% endif %} · {{ ranked }} ranked{% if event.weights %} · weights: climb {{ event.weights.climb | percent }}, flat {{ event.weights.flat | percent }}, sprint {{ event.weights.sprint | percent }}{% endif %}{% endif -%}
 			</span>
-			{%- if event.route.info and event.route.info.url %}
-			<a href="{{ event.route.info.url }}" rel="noopener">Route map and profile on {{ event.route.info.name or 'the route guide' }}</a>
+			{%- if (event.route.info and event.route.info.url) or (event.scoreSegment and event.scoreSegment.url) %}
+			<span class="hero-links">
+				{%- if event.scoreSegment and event.scoreSegment.url %}
+				<a href="{{ event.scoreSegment.url }}" rel="noopener">{{ event.scoreSegment.name }} on Strava</a>
+				{%- endif %}
+				{%- if event.route.info and event.route.info.url %}
+				<a href="{{ event.route.info.url }}" rel="noopener">Route map and profile on {{ event.route.info.name or 'the route guide' }}</a>
+				{%- endif %}
+			</span>
 			{%- endif %}
 		</div>
 	</div>
@@ -113,7 +120,7 @@ eleventyComputed:
 	<section class="section">
 		<div class="section-head">
 			<h2>Results</h2>
-			<p class="section-note">Ranked on adjusted time · raw times aren't published</p>
+			<p class="section-note">Ranked on adjusted time · {% if event.scoreSegment and event.scoreSegment.url %}raw times are on <a href="{{ event.scoreSegment.url }}" rel="noopener">Strava</a>{% else %}raw times aren't published{% endif %}</p>
 		</div>
 		<div class="panel table-scroll">
 			{%- if ranked %}
@@ -165,6 +172,7 @@ eleventyComputed:
 	<section class="section">
 		<div class="section-head">
 			<h2>Bonus segments</h2>
+			<p class="section-note">Segment names link to Strava, where you can see raw times (filter the leaderboard to the club)</p>
 		</div>
 		<div class="segments">
 			{%- for seg in event.segments %}
