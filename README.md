@@ -8,14 +8,20 @@ A handicapped, asynchronous virtual cycling league. Static 11ty site, scored at 
 npm install
 npm start        # builds from sample-data/ unless src/_data/league/ exists
 npm test         # handicap model, with the worked example as a fixture
+IRL_TODAY=2026-10-20 npm start   # pretend it's another day, to check event statuses
 ```
+
+"Today" is the date in London (event windows are UK Monday–Sunday weeks). Statuses ("open", "days left") are fixed at build time, so the data repo's workflow also rebuilds the site daily just after midnight.
+
+A production build (`CONTEXT=production`) fails rather than publish sample data: `scripts/fetch-data.sh` refuses without the deploy key or if the clone has no `leagues.yml`, and `standings.js` refuses if it ends up on `sample-data/` anyway.
 
 To build with real data, clone the private data repo ([`mikestreety/indoor-racing-league-data`](https://github.com/mikestreety/indoor-racing-league-data)) into `src/_data/league/` (gitignored). Netlify does this at build time with a read-only deploy key (`DATA_DEPLOY_KEY`, see `scripts/fetch-data.sh`).
 
 ## Layout
 
 - `lib/model.js` — the handicap model (pure function, see `02-handicap-model.md`)
-- `src/_data/standings.js` — loads the YAML, runs the model, strips raw times, returns template data
+- `src/_data/standings.js` — loads the YAML, runs the model, and returns template data through an allowlist of fields (so no raw time can reach a template), plus event labels ("Event 02", "Q", "E2")
+- `lib/leagues.js` — validates `leagues.yml`: **fails the build** on a missing, short (under 10 characters), malformed or duplicate slug, or a duplicate league id
 - `src/index.njk` — public overview
 - `src/league.njk` → `/l/{slug}/`, `src/event.njk` → `/l/{slug}/{event}/` (noindex, no-referrer, never linked)
 - `lib/clubs.js` — clubs (name, logo, Strava club) and which league belongs to which

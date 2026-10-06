@@ -37,7 +37,6 @@ module.exports = function (eleventyConfig) {
 			return url;
 		}
 	});
-	eleventyConfig.addFilter('pad2', (n) => String(n).padStart(2, '0'));
 	eleventyConfig.addFilter('percent', (x) => `${Math.round(x * 100)}%`);
 	eleventyConfig.addFilter('ordinal', (n) => {
 		const s = ['th', 'st', 'nd', 'rd'];

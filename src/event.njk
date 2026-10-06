@@ -9,10 +9,10 @@ pagination:
 permalink: "/l/{{ event.league.slug }}/{{ event.id }}/"
 eleventyExcludeFromCollections: true
 eleventyComputed:
-  title: "{% if event.type == 'qualifier' %}Qualifier{% elif event.type == 'challenge' %}Challenge{% else %}Event {{ event.number }}{% endif %}: {{ event.route.name }}"
+  title: "{{ event.label }}: {{ event.route.name }}"
   homeHref: "/l/{{ event.league.slug }}/"
 ---
-{%- from "macros.njk" import eventNum, eventLabel, typeBadge, statusBadge, place, routeName, dates, clubLogo, stravaClubButton -%}
+{%- from "macros.njk" import typeBadge, statusBadge, place, routeName, dates, clubLogo, stravaClubButton -%}
 {%- set hasSegments = event.segments | length %}
 {%- set ranked = event.results | length %}
 {%- set riders = ranked + (event.unbenchmarked | length) %}
@@ -22,7 +22,7 @@ eleventyComputed:
 		<div class="hero-inner">
 			<div class="hero-main">
 				<p class="event-badges">
-					<span class="event-kicker">{{ eventLabel(event) }}</span>
+					<span class="event-kicker">{{ event.label }}</span>
 					{% if event.type != 'qualifier' %}{{ typeBadge(event) }}{% endif %}
 					{{ statusBadge(event) }}
 				</p>
@@ -30,6 +30,7 @@ eleventyComputed:
 			</div>
 			<dl class="facts">
 				<div><dt>Window</dt><dd>{{ dates(event) }}</dd></div>
+				{%- if event.laps and event.laps > 1 %}<div><dt>Laps</dt><dd>{{ event.laps }}, fastest counts</dd></div>{% endif %}
 				{%- if event.route.world %}<div><dt>World</dt><dd>{{ event.route.world }}</dd></div>{% endif %}
 				{%- if event.route.distance_km %}<div><dt>Distance</dt><dd>{{ event.route.distance_km }} km{% if event.laps and event.laps > 1 %}/lap{% endif %}</dd></div>{% endif %}
 				{%- if event.route.elevation_m %}<div><dt>Elevation</dt><dd>{{ event.route.elevation_m }} m{% if event.laps and event.laps > 1 %}/lap{% endif %}</dd></div>{% endif %}
