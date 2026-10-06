@@ -1,7 +1,7 @@
 // Worked example from 02-handicap-model.md as a fixture. Run: npm test
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { computeStandings, formatTime } = require('../lib/model');
+const { computeStandings, formatTime, WEIGHTS } = require('../lib/model');
 
 const members = [
 	{ id: 'a', display: 'Rider A.' },
@@ -264,4 +264,157 @@ test('events link their score segment to Strava when it has an ID', () => {
 	if (!routes[0].segments.lap.strava_segment_id) {
 		assert.equal(unlinked.events[0].scoreSegment.url, null);
 	}
+});
+
+// --- Late qualifiers, no re-benchmarking, renormalisation, settings.alpha ---
+
+const withD = {
+	members: [...members, { id: 'd', display: 'Rider D.' }],
+	league: { ...league, members: ['a', 'b', 'c', 'd'] },
+};
+const qOn = (member, date, lap, kom, sprint) =>
+	q(member, lap, kom, sprint).map((r) => ({ ...r, date }));
+const e2 = {
+	id: 'e2',
+	league: 'test',
+	type: 'event',
+	route: 'hilly',
+	route_type: 'flat',
+	score_segment: 'lap',
+	window: { from: '2026-11-02', to: '2026-11-15' },
+	results: [
+		{ member: 'a', segment: 'lap', time: '25:00', date: '2026-11-03' },
+		{ member: 'b', segment: 'lap', time: '27:00', date: '2026-11-03' },
+		{ member: 'c', segment: 'lap', time: '30:00', date: '2026-11-03' },
+		{ member: 'd', segment: 'lap', time: '26:30', date: '2026-11-04' },
+	],
+};
+const pick = (obj, keys) => Object.fromEntries(keys.map((k) => [k, obj[k]]));
+
+test('late qualifier: participation only, benchmarked from the next event, nobody else changes', () => {
+	// One-week reference window, so there's a gap before e1 opens on 2026-10-19.
+	const base = structuredClone(events);
+	base[0].window = { from: '2026-10-05', to: '2026-10-11' };
+	const late = structuredClone(base);
+	late[0].results.push(...qOn('d', '2026-10-14', 960, 170, 32));
+	late[1].results.push({ member: 'd', segment: 'lap', time: '26:00', date: '2026-10-21' });
+
+	const out = computeStandings(withD.league, withD.members, routes, late);
+	const qual = out.events.find((e) => e.id === 'q');
+	const d = qual.results.find((r) => r.member === 'd');
+	assert.deepEqual(pick(d, ['bonus', 'points', 'late']), { bonus: 0, points: 2, late: true });
+	assert.equal(qual.results[qual.results.length - 1].member, 'd', 'late riders listed after in-window riders');
+	assert.ok(qual.segments.every((s) => s.results.every((r) => r.member !== 'd')));
+
+	const ev = out.events.find((e) => e.id === 'e1');
+	assert.ok(ev.results.some((r) => r.member === 'd'), 'D is ranked');
+	assert.equal(ev.unbenchmarked.length, 0);
+	assert.ok(out.info.some((m) => m.includes('Late qualifier: d (2026-10-14), benchmarked from e1')));
+
+	// A, B and C's qualifier points and post-qualifier ratios don't move.
+	const qOnly = (evs) => [evs[0]];
+	const without = computeStandings(withD.league, withD.members, routes, qOnly(base));
+	const withLate = computeStandings(withD.league, withD.members, routes, qOnly(late));
+	const qualPts = (o) => Object.fromEntries(o.events[0].results.filter((r) => r.member !== 'd').map((r) => [r.member, r.points]));
+	assert.deepEqual(qualPts(withLate), qualPts(without));
+	assert.deepEqual(qualPts(withLate), { a: 8, b: 6, c: 4 });
+	assert.deepEqual(pick(withLate.benchmarks, ['a', 'b', 'c']), pick(without.benchmarks, ['a', 'b', 'c']));
+	assert.deepEqual(withLate.medians, without.medians);
+	// Not effective yet after the qualifier alone: held until e1.
+	assert.equal(withLate.benchmarks.d, undefined);
+});
+
+test('late qualifier after an event opens: unbenchmarked there, benchmarked in the next', () => {
+	const ev = structuredClone([...events, e2]);
+	ev[0].results.push(
+		...qOn('d', '2026-10-20', 960, 170, 32),
+		{ member: 'd', segment: 'lap', time: '15:00', date: '2026-11-02' }, // on/after e2 opens: ignored
+		{ member: 'd', segment: 'kom', time: '2:00', date: '2026-12-01' } // after the last window: ignored
+	);
+	ev[1].results.push({ member: 'd', segment: 'lap', time: '26:00', date: '2026-10-21' });
+
+	const out = computeStandings(withD.league, withD.members, routes, ev);
+	const e1 = out.events.find((e) => e.id === 'e1');
+	assert.deepEqual(e1.unbenchmarked.map((r) => [r.member, r.points]), [['d', 2]]);
+	const second = out.events.find((e) => e.id === 'e2');
+	assert.ok(second.results.some((r) => r.member === 'd'));
+	assert.ok(out.info.some((m) => m.includes('benchmarked from e2')));
+	assert.ok(out.warnings.some((w) => w.includes('d/lap') && w.includes('on or after e2 opens')));
+	assert.ok(out.warnings.some((w) => w.includes('d/kom') && w.includes("after the league's last event window")));
+	// The ignored 15:00 lap didn't become D's benchmark: D matches B's qualifier.
+	assert.equal(out.table.find((r) => r.member === 'd').qualifier, 2);
+
+	// With no event starting after the ride, D gets participation but no benchmark.
+	const only = structuredClone(ev.slice(0, 2));
+	const out2 = computeStandings(withD.league, withD.members, routes, only);
+	assert.ok(out2.warnings.some((w) => w.includes('late qualifier d') && w.includes('no benchmark')));
+	assert.equal(out2.events[0].results.find((r) => r.member === 'd').points, 2);
+	assert.equal(out2.benchmarks.d, undefined);
+});
+
+test('no re-benchmarking: later qualifier rows and a second qualifier are ignored', () => {
+	const base = computeStandings(league, members, routes, events);
+	const ev = structuredClone(events);
+	ev[0].results.push(
+		...qOn('a', '2026-10-25', 800, 120, 25), // after the window, A already qualified
+		{ member: 'b', segment: 'lap', time: '10:00', date: '2026-10-01' } // before the window
+	);
+	ev.push({
+		id: 'q2', league: 'test', type: 'qualifier', route: 'hilly',
+		window: { from: '2026-10-19', to: '2026-11-01' },
+		results: qOn('c', '2026-10-20', 700, 100, 20),
+	});
+	const out = computeStandings(league, members, routes, ev);
+	assert.deepEqual(out.benchmarks, base.benchmarks);
+	assert.deepEqual(out.events.map((e) => e.id), ['q', 'e1']);
+	assert.deepEqual(out.table, base.table);
+	assert.ok(out.warnings.some((w) => w.includes('a/lap') && w.includes('re-qualification ignored')));
+	assert.ok(out.warnings.some((w) => w.includes('b/lap') && w.includes('before window')));
+	assert.ok(out.warnings.some((w) => w.includes('q2') && w.includes('ignored')));
+});
+
+test('a qualifier route with no sprint renormalises the weights', () => {
+	const r = [{ id: 'nosprint', segments: { lap: {}, kom: {} } }];
+	const ev = structuredClone(events);
+	ev[0].route = 'nosprint';
+	ev[0].results = ev[0].results.filter((x) => x.segment !== 'sprint');
+	ev[1].route = 'nosprint';
+	const out = computeStandings(league, members, r, ev);
+
+	assert.deepEqual(out.components, ['climb', 'flat']);
+	near(out.weights.rolling.climb, 0.4375, 9);
+	near(out.weights.rolling.flat, 0.5625, 9);
+	assert.equal(out.weights.rolling.sprint, 0);
+	for (const [type, w] of Object.entries(out.weights)) {
+		near(w.climb + w.flat + w.sprint, 1, 9);
+		assert.equal(w.sprint, 0, type);
+	}
+	assert.equal(out.medians.sprint, null);
+	assert.ok(out.warnings.some((w) => w.includes('no sprint segment')));
+
+	// Flat = lap − KOM: A 750, B 790, C 880, median 790. KOM median 170.
+	const e1 = out.events.find((e) => e.id === 'e1');
+	const a = e1.results.find((x) => x.member === 'a');
+	const blended = 0.4375 * (150 / 170) + 0.5625 * (750 / 790);
+	near(a._blended, Number(blended.toFixed(6)), 6);
+	near(a.adjusted, Number((1500 / blended).toFixed(3)));
+	// No sprint ratio, before or after the route update.
+	assert.ok(!('sprint' in out.benchmarks.a));
+	assert.deepEqual(Object.keys(out.benchmarks.c).sort(), ['climb', 'flat']);
+	// Full routes keep the original weights untouched.
+	assert.equal(computeStandings(league, members, routes, events).weights.rolling, WEIGHTS.rolling);
+});
+
+test('settings.alpha sets the update rate; absent behaves as 0.3', () => {
+	const at = (alpha) => computeStandings({ ...league, settings: alpha === undefined ? {} : { alpha } }, members, routes, events);
+	assert.deepEqual(at(undefined).benchmarks, at(0.3).benchmarks);
+	assert.equal(at(undefined).settings.alpha, 0.3);
+
+	// A: pre-event climb 150/170, blended 0.9238 (worked example), event median 1640.
+	const half = at(0.5);
+	const blendedA = half.events[1].results.find((x) => x.member === 'a')._blended;
+	const error = (1500 / 1640) / blendedA;
+	near(half.benchmarks.a.climb, Number(((150 / 170) * (1 + 0.5 * 0.35 * (error - 1))).toFixed(6)), 6);
+	near(half.benchmarks.a.flat, Number(((720 / 758) * (1 + 0.5 * 0.45 * (error - 1))).toFixed(6)), 6);
+	assert.notDeepEqual(half.benchmarks, at(0.3).benchmarks);
 });

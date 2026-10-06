@@ -10,3 +10,4 @@ results:
   - { member: tom-c, segment: lap, time: "44:03", date: 2026-10-01 }
   - { member: kev-b, segment: lap, time: "48:45", date: 2026-09-29 }
   - { member: ali-r, segment: lap, time: "54:21", date: 2026-10-01 }
+  - { member: dan-w, segment: lap, time: "50:12", date: 2026-10-04 }

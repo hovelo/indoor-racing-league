@@ -3,7 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const yaml = require('js-yaml');
-const { computeStandings, formatTime, WEIGHTS } = require('../../lib/model');
+const { computeStandings, formatTime } = require('../../lib/model');
 const { loadClubs, clubFor } = require('../../lib/clubs');
 const { validateMembers } = require('../../lib/members');
 const { usingSample, dir, CLUB_LOGO_DIR, CLUB_LOGO_URL } = require('../../lib/data-dir');
@@ -77,6 +77,7 @@ module.exports = function () {
 	for (const league of leagues) {
 		const result = computeStandings(league, members, routes, events);
 		result.warnings.forEach((w) => console.warn(`[standings] ${w}`));
+		result.info.forEach((m) => console.log(`[standings] ${m}`));
 		const { club, warning: clubWarning } = clubFor(league, clubs.byId);
 		if (clubWarning) {
 			console.warn(`[standings] ${clubWarning}`);
@@ -97,7 +98,8 @@ module.exports = function () {
 				league: { slug: league.slug, name: league.name, club },
 				participation: result.settings.points.participation,
 				segmentBonus: result.settings.segment_bonus,
-				weights: e.route_type ? WEIGHTS[e.route_type] : null,
+				// The league's weights: renormalised if its qualifier route lacks a climb or sprint.
+				weights: e.route_type ? result.weights[e.route_type] || null : null,
 				results,
 				segments: e.segments.map((s) => ({ ...s, results: markTies(s.results) })),
 			};

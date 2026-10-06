@@ -77,7 +77,7 @@ eleventyComputed:
 	<section class="section">
 		<div class="section-head">
 			<h2>Riders</h2>
-			<p class="section-note">{{ event.participation }} points for riding, plus segment bonuses</p>
+			<p class="section-note">{{ event.participation }} points for riding, plus segment bonuses in the window · late riders get {{ event.participation }} only</p>
 		</div>
 		<div class="panel table-scroll">
 			<table class="table">
@@ -87,7 +87,7 @@ eleventyComputed:
 				<tbody>
 					{%- for r in event.results %}
 					<tr>
-						<td class="rider">{{ r.display }}</td>
+						<td class="rider">{{ r.display }}{% if r.late %} <span class="tag">Late</span>{% endif %}</td>
 						<td class="num">{% if r.bonus %}+{{ r.bonus }}{% else %}<span class="dim">&ndash;</span>{% endif %}</td>
 						<td class="num total">{{ r.points }}</td>
 					</tr>
@@ -161,7 +161,7 @@ eleventyComputed:
 					<li><strong>{{ r.display }}</strong> <span class="mono">{{ r.points }}</span></li>
 					{%- endfor %}
 				</ul>
-				<p class="muted">Finished, but not ranked until the qualifier is ridden.</p>
+				<p class="muted">Finished, but not ranked until their qualifier takes effect.</p>
 			</div>
 			{%- endif %}
 		</div>
