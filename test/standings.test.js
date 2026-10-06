@@ -250,3 +250,18 @@ test('a challenge is scored after same-day events and never moves benchmarks', (
 	const aBase = base.table.find((r) => r.member === 'a');
 	assert.equal(a.total, aBase.total + c.results.find((r) => r.member === 'a').points);
 });
+
+test('events link their score segment to Strava when it has an ID', () => {
+	const linked = routes.map((r) => ({
+		...r,
+		segments: { ...r.segments, lap: { ...r.segments.lap, strava_segment_id: 999 } },
+	}));
+	const out = computeStandings(league, members, linked, events);
+	for (const e of out.events) {
+		assert.deepEqual(e.scoreSegment, { key: 'lap', name: linked[0].segments.lap.name || 'lap', url: 'https://www.strava.com/segments/999' });
+	}
+	const unlinked = computeStandings(league, members, routes, events);
+	if (!routes[0].segments.lap.strava_segment_id) {
+		assert.equal(unlinked.events[0].scoreSegment.url, null);
+	}
+});

@@ -136,6 +136,7 @@ abbr[title] { text-decoration: none; }
 }
 .hero-foot a { color: var(--accent); font-weight: 600; }
 .hero-foot a:hover { color: var(--ground); }
+.hero-links { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; }
 
 /* Badges */
 .badge {
