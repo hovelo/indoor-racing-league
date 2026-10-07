@@ -68,11 +68,14 @@ function labels(type, number) {
 
 // Only these fields of a scored result reach a template. An allowlist, so no time
 // (raw or adjusted) can leak onto the public site, now or if the model grows one later.
-// Places (and ties) are already decided by the model from adjusted time.
+// Places (and ties) are decided by the model from vs prediction, which is published:
+// a percentage against the rider's own prediction, not a time.
 const pickResult = (r) => ({
 	member: r.member,
 	display: r.display,
 	place: r.place,
+	vsPrediction: r.vsPrediction,
+	vsDisplay: r.vsDisplay,
 	finishPoints: r.finishPoints,
 	bonus: r.bonus,
 	points: r.points,
@@ -86,7 +89,15 @@ const pickSegment = (s) => ({
 	url: s.url,
 	mode: s.mode,
 	benchmarksUpdated: s.benchmarksUpdated,
-	results: markTies(s.results.map((r) => ({ member: r.member, display: r.display, place: r.place, points: r.points }))),
+	results: markTies(s.results.map((r) => ({
+		member: r.member,
+		display: r.display,
+		place: r.place,
+		points: r.points,
+		// Handicapped segments only; raw segments (and the qualifier) have no prediction.
+		vsPrediction: r.vsPrediction,
+		vsDisplay: r.vsDisplay,
+	}))),
 });
 
 module.exports = function () {

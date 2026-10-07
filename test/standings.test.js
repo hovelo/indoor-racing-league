@@ -1,7 +1,7 @@
 // Worked example from 02-handicap-model.md as a fixture. Run: npm test
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { computeStandings: compute, formatTime, median, WEIGHTS } = require('../lib/model');
+const { computeStandings: compute, formatTime, formatVs, vsTenths, median, WEIGHTS } = require('../lib/model');
 
 // Tests check raw and blended values, which the model only exposes with debug on.
 const computeStandings = (league, members, routes, events, opts = {}) =>
@@ -74,8 +74,13 @@ test('worked example', () => {
 	assert.equal(byId.c.place, 1);
 	assert.equal(byId.a.place, 2);
 	assert.equal(byId.b.place, 3);
-	assert.equal(formatTime(byId.a.adjusted), '27:04');
-	assert.equal(formatTime(byId.c.adjusted), '26:48');
+	assert.equal(formatTime(byId.a._adjusted), '27:04');
+	assert.equal(formatTime(byId.c._adjusted), '26:48');
+
+	// vs prediction, event median 1640: C −1.9%, A −1.0%, B 0.0%, the same order.
+	assert.deepEqual(ev.results.map((r) => [r.member, r.vsDisplay]), [['c', '\u22121.9%'], ['a', '\u22121.0%'], ['b', '0.0%']]);
+	assert.equal(byId.c.vsPrediction, -1.9);
+	assert.ok(!('adjusted' in byId.a) && !('adjustedDisplay' in byId.a));
 
 	// Points: 15/14/13 + 2 participation
 	assert.equal(byId.c.points, 17);
@@ -402,7 +407,7 @@ test('a qualifier route with no sprint renormalises the weights', () => {
 	const a = e1.results.find((x) => x.member === 'a');
 	const blended = 0.4375 * (150 / 170) + 0.5625 * (750 / 790);
 	near(a._blended, Number(blended.toFixed(6)), 6);
-	near(a.adjusted, Number((1500 / blended).toFixed(3)));
+	near(a._adjusted, Number((1500 / blended).toFixed(3)));
 	// No sprint ratio, before or after the route update.
 	assert.ok(!('sprint' in out.benchmarks.a));
 	assert.deepEqual(Object.keys(out.benchmarks.c).sort(), ['climb', 'flat']);
@@ -445,15 +450,15 @@ test('worked example with the sprint bonus (handicap)', () => {
 
 	const sprint = e1.segments[0];
 	assert.equal(sprint.mode, 'handicap');
-	// Adjusted: A 30/0.9375 = 32.0, B 29/1 = 29.0, C 33/1.125 = 29.33.
-	// The spec's table puts C 2nd, but ties are compared to the nearest second,
-	// so C's 29.33 rounds to 29 and ties B: both share 1st (3 points each).
-	assert.deepEqual(segPlaces(sprint), [['b', 1, 3], ['c', 1, 3], ['a', 3, 1]]);
+	// vs prediction, segment median 30: B 29/30/1 = −3.3%, C 33/30/1.125 = −2.2%,
+	// A 30/30/0.9375 = +6.7%. Ranked on the published 0.1%, so no whole-second tie.
+	assert.deepEqual(segPlaces(sprint), [['b', 1, 3], ['c', 2, 2], ['a', 3, 1]]);
+	assert.deepEqual(sprint.results.map((x) => x.vsDisplay), ['\u22123.3%', '\u22122.2%', '+6.7%']);
 	assert.ok(sprint.results.every((x) => !('time' in x) && !('adjusted' in x)));
 
-	// Spec says A 17, B 18, C 19; with the tie C gets 3 bonus, not 2.
+	// As the spec: A 17, B 18, C 19.
 	const pts = Object.fromEntries(e1.results.map((x) => [x.member, x.points]));
-	assert.deepEqual(pts, { a: 17, b: 18, c: 20 });
+	assert.deepEqual(pts, { a: 17, b: 18, c: 19 });
 
 	const expected = {
 		a: [0.8814, 0.9486, 0.9557],
@@ -509,7 +514,8 @@ test('unbenchmarked riders: no bonus in handicap mode but count towards the segm
 	const h = computeStandings(withD.league, withD.members, routes, ev);
 	const hs = h.events[1].segments[0];
 	assert.ok(hs.results.every((x) => x.member !== 'd'));
-	assert.deepEqual(segPlaces(hs), [['b', 1, 3], ['c', 1, 3], ['a', 3, 1]]);
+	// Median 29.5 (D included): B −1.7%, C −0.6%, A +8.5%.
+	assert.deepEqual(segPlaces(hs), [['b', 1, 3], ['c', 2, 2], ['a', 3, 1]]);
 	assert.deepEqual(h.events[1].unbenchmarked.map((x) => [x.member, x.bonus, x.points]), [['d', 0, 2]]);
 	// Segment median of 25, 29, 30, 33 is 29.5 (D included), not 30.
 	const route = h.events[1].results.find((x) => x.member === 'a');
@@ -542,8 +548,8 @@ test('a challenge ranks its bonus segment handicapped but never moves benchmarks
 	const out = computeStandings(league, members, routes, [...events, challenge]);
 	const seg = out.events.find((e) => e.id === 'ch').segments[0];
 	assert.equal(seg.mode, 'handicap');
-	// Ratios after e1 (route update only): B 29.0, C 33/1.124 = 29.4 (rounds to 29, a tie), A 30/0.937 = 32.
-	assert.deepEqual(segPlaces(seg), [['b', 1, 3], ['c', 1, 3], ['a', 3, 1]]);
+	// Ratios after e1 (route update only), median 30: B −3.3%, C 33/30/1.124 = −2.1%, A 30/30/0.937 = +6.7%.
+	assert.deepEqual(segPlaces(seg), [['b', 1, 3], ['c', 2, 2], ['a', 3, 1]]);
 	assert.ok(!seg.benchmarksUpdated);
 	assert.deepEqual(out.benchmarks, base.benchmarks);
 });
@@ -657,10 +663,10 @@ test('the lap-ratio fallback rider is adjusted by that ratio on a bonus segment'
 	};
 	const out = run('0:33');
 	assert.ok(out.warnings.some((w) => w.includes('c missing climb/sprint')));
-	// Adjusted: B 29/(32/31) = 28.1, C 33/1.125 = 29.3, A 30/(30/31) = 31.0.
+	// Median 30: B 29/30/(32/31) = −6.4%, C 33/30/1.125 = −2.2%, A 30/30/(30/31) = +3.3%.
 	assert.deepEqual(segPlaces(out.events[1].segments[0]), [['b', 1, 3], ['c', 2, 2], ['a', 3, 1]]);
-	// C on 0:35: 35/1.125 = 31.1, which rounds to A's 31 and shares 2nd.
-	assert.deepEqual(segPlaces(run('0:35').events[1].segments[0]), [['b', 1, 3], ['a', 2, 2], ['c', 2, 2]]);
+	// C on 0:35: 35/30/1.125 = +3.7%, just behind A.
+	assert.deepEqual(segPlaces(run('0:35').events[1].segments[0]), [['b', 1, 3], ['a', 2, 2], ['c', 3, 1]]);
 });
 
 // --- Review fixes ---
@@ -722,4 +728,43 @@ test('a route segment with an unknown type warns', () => {
 	const r = [{ ...routes[0], segments: { ...routes[0].segments, odd: { type: 'descent' } } }];
 	const out = computeStandings(league, members, r, events);
 	assert.equal(out.warnings.filter((w) => w.includes('unknown type "descent"')).length, 1);
+});
+
+// --- vs prediction ---
+
+test('formatVs: true minus, plus sign, and no negative zero', () => {
+	assert.equal(formatVs(-19), '\u22121.9%');
+	assert.equal(formatVs(4), '+0.4%');
+	assert.equal(formatVs(0), '0.0%');
+	assert.equal(vsTenths(0.99996), 0);
+	assert.ok(Object.is(vsTenths(0.99996), 0));
+	assert.equal(vsTenths(0.9807), -19);
+});
+
+test('riders on the same published vs prediction share the place and points', () => {
+	// C on 30:47: adjusted 1623.3 against A's 1623.8 (1623 and 1624 to the second, so not
+	// a tie under the old rule), but both are −1.0% against their prediction.
+	const ev = structuredClone(events);
+	ev[1].results[2].time = '30:47';
+	const out = computeStandings(league, members, routes, ev);
+	const byId = Object.fromEntries(out.events[1].results.map((r) => [r.member, r]));
+	assert.equal(byId.a.vsDisplay, '\u22121.0%');
+	assert.equal(byId.c.vsDisplay, '\u22121.0%');
+	assert.notEqual(Math.round(byId.a._adjusted), Math.round(byId.c._adjusted));
+	assert.deepEqual([byId.a.place, byId.c.place, byId.b.place], [1, 1, 3]);
+	assert.equal(byId.a.points, byId.c.points);
+});
+
+test('an event with fewer than 3 finishers still shows vs prediction, but skips the update', () => {
+	const ev = structuredClone(events);
+	ev[1].results = ev[1].results.slice(0, 2);
+	const out = computeStandings(league, members, routes, ev);
+	assert.equal(out.events[1].benchmarksUpdated, false);
+	assert.ok(out.events[1].results.every((r) => typeof r.vsDisplay === 'string'));
+});
+
+test('raw-mode bonus segments carry no vs prediction', () => {
+	const out = computeStandings({ ...league, settings: { segment_bonus_mode: 'raw' } }, members, routes, withSprint());
+	assert.ok(out.events[1].segments[0].results.every((x) => !('vsDisplay' in x)));
+	assert.ok(out.events[0].segments.every((s) => s.results.every((x) => !('vsDisplay' in x))));
 });

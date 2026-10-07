@@ -1,6 +1,6 @@
-// Public pages show places and points only: no times, raw or adjusted (decided 7 October 2026).
-// The model still calculates adjusted times to decide places; this checks none of them
-// reach template data.
+// Public pages show places, points and vs prediction (a percentage), but no times, raw or
+// adjusted (decided 7 October 2026). The model still calculates adjusted times; this checks
+// none of them reach template data.
 //
 // Two runs:
 // - sample-data/, always, with checks that there's something to look at (so it can't pass
@@ -121,6 +121,21 @@ test('sample data: places still come through, with ties marked', () => {
 		assert.equal(typeof r.place, 'number');
 		assert.equal(typeof r.tied, 'boolean');
 	});
+});
+
+test('sample data: ranked results and handicapped segment rows carry vs prediction, as a percentage', () => {
+	const standings = sampleStandings();
+	const VS = /^(\u2212|\+)?\d+\.\d%$/;
+	const ranked = standings.events.flatMap((e) => e.results).filter((r) => r.place !== undefined);
+	ranked.forEach((r) => {
+		assert.match(r.vsDisplay, VS);
+		assert.equal(typeof r.vsPrediction, 'number');
+	});
+	const segRows = standings.events.flatMap((e) => e.segments).filter((s) => s.mode === 'handicap').flatMap((s) => s.results);
+	assert.ok(segRows.length > 0, 'expected handicapped segment rows in sample-data');
+	segRows.forEach((r) => assert.match(r.vsDisplay, VS));
+	// Qualifier rows have no prediction.
+	standings.events.filter((e) => e.type === 'qualifier').flatMap((e) => e.results).forEach((r) => assert.equal(r.vsDisplay, undefined));
 });
 
 test('build data: no time-shaped fields (may have no results yet)', (t) => {
