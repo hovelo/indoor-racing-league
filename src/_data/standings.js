@@ -8,6 +8,12 @@ const { loadClubs, clubFor } = require('../../lib/clubs');
 const { validateMembers } = require('../../lib/members');
 const { validateLeagues } = require('../../lib/leagues');
 const { usingSample, dir, CLUB_LOGO_DIR, CLUB_LOGO_URL } = require('../../lib/data-dir');
+const { gatherResults } = require('../../lib/sources');
+const yamlSource = require('../../lib/sources/yaml');
+
+// Where results rows come from. Every source returns rows of the same shape; they're
+// merged (fastest per member, event and segment) before the model sees them.
+const SOURCES = [yamlSource];
 
 function load(file) {
 	const p = path.join(dir, file);
@@ -90,7 +96,7 @@ const pickSegment = (s) => ({
 	results: markTies(s.results.map((r) => ({ member: r.member, display: r.display, place: r.place, points: r.points }))),
 });
 
-module.exports = function () {
+module.exports = async function () {
 	if (usingSample) {
 		// fetch-data.sh refuses to build without the key, but a clone with no leagues.yml
 		// (renamed, or a bad commit) would also land here. Never publish sample data.
@@ -103,7 +109,8 @@ module.exports = function () {
 	const leagues = load('leagues.yml');
 	const members = load('members.yml');
 	const routes = load('routes.yml');
-	const events = loadEvents();
+	const events = await gatherResults(loadEvents(), SOURCES, { leagues, members, routes, dir, usingSample },
+		(w) => console.warn(`[standings] ${w}`));
 
 	const leagueCheck = validateLeagues(leagues);
 	if (leagueCheck.errors.length) {

@@ -21,6 +21,7 @@ To build with real data, clone the private data repo ([`mikestreety/indoor-racin
 
 - `lib/model.js` — the handicap model (pure function, see `02-handicap-model.md`)
 - `src/_data/standings.js` — loads the YAML, runs the model, and returns template data through an allowlist of fields (so no raw time can reach a template), plus event labels ("Event 02", "Q", "E2")
+- `lib/sources/` — results sources. `standings.js` gathers rows from every source (the event YAML today), merges them (fastest per member, event and segment, warning on duplicates across sources) and hands the model plain `results` rows. A source is `{ name, load(ctx) → rows }`; each row is a YAML `results` row plus `event` and `source` (screenshot | fit | manual). The model doesn't know about sources.
 - `lib/leagues.js` — validates `leagues.yml`: **fails the build** on a missing, short (under 10 characters), malformed or duplicate slug, or a duplicate league id
 - `src/index.njk` — public overview
 - `src/league.njk` → `/l/{slug}/`, `src/event.njk` → `/l/{slug}/{event}/` (noindex, no-referrer, never linked)
