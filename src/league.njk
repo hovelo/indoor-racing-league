@@ -165,7 +165,8 @@ eleventyComputed:
 			{%- if rules.lapped %}
 			<div><dt>Lapped events</dt><dd>Where an event is several laps of a loop, your fastest single lap is the time that's scored. Ride them all anyway: the laps are the event.</dd></div>
 			{%- endif %}
-			<div><dt>Ties</dt><dd>Riders level to the second share the higher place and its points.</dd></div>
+			<div><dt>Results</dt><dd>Your time on the road is adjusted by your handicap for the route type, and riders are ranked on that. League pages show places and points only, never times.</dd></div>
+			<div><dt>Ties</dt><dd>Riders level on adjusted time, to the second, share the higher place and its points.</dd></div>
 			<div><dt>No qualifier yet?</dt><dd>You can still ride events{% if pts.participation %} and score {{ pts.participation }} for finishing{% endif %}{% if bonusCount and rules.segmentBonusMode == 'raw' %}, plus any segment bonus{% endif %}. Ride the qualifier route to get ranked.</dd></div>
 		</dl>
 	</section>
