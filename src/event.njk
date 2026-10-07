@@ -112,7 +112,6 @@ eleventyComputed:
 				<span class="mono">+{{ r.points }} pts</span>
 			</div>
 			<div class="podium-name">{{ r.display }}</div>
-			<div class="podium-time mono">{{ r.adjustedDisplay }}<span class="hide-xs"> adjusted</span></div>
 		</div>
 		{%- endfor %}
 	</section>
@@ -121,7 +120,7 @@ eleventyComputed:
 	<section class="section">
 		<div class="section-head">
 			<h2>Results</h2>
-			<p class="section-note">Ranked on adjusted time · {% if event.scoreSegment and event.scoreSegment.url %}raw times are on <a href="{{ event.scoreSegment.url }}" rel="noopener">Strava</a>{% else %}raw times aren't published{% endif %}</p>
+			<p class="section-note">Ranked on time against each rider's prediction · times aren't published{% if event.scoreSegment and event.scoreSegment.url %}; ride times are on <a href="{{ event.scoreSegment.url }}" rel="noopener">Strava</a>{% endif %}</p>
 		</div>
 		<div class="panel table-scroll">
 			{%- if ranked %}
@@ -130,8 +129,6 @@ eleventyComputed:
 					<tr>
 						<th class="col-place" scope="col">Pos</th>
 						<th scope="col">Rider</th>
-						<th class="num" scope="col">Adjusted</th>
-						<th class="num hide-sm" scope="col">Gap</th>
 						<th class="num hide-sm" scope="col">Place</th>
 						<th class="num hide-sm" scope="col">Finish</th>
 						{%- if hasSegments %}<th class="num hide-sm" scope="col">Bonus</th>{% endif %}
@@ -143,8 +140,6 @@ eleventyComputed:
 					<tr>
 						<td class="col-place">{{ place(r) }}</td>
 						<td class="rider">{{ r.display }}</td>
-						<td class="num strong">{{ r.adjustedDisplay }}</td>
-						<td class="num hide-sm muted">{{ r.gapDisplay or "–" }}</td>
 						<td class="num hide-sm">{{ r.finishPoints }}</td>
 						<td class="num hide-sm">{{ event.participation }}</td>
 						{%- if hasSegments %}<td class="num hide-sm">{% if r.bonus %}{{ r.bonus }}{% else %}<span class="dim">&ndash;</span>{% endif %}</td>{% endif %}
@@ -173,7 +168,7 @@ eleventyComputed:
 	<section class="section">
 		<div class="section-head">
 			<h2>Bonus segments</h2>
-			<p class="section-note">{% if event.segments[0].mode == 'handicap' %}Ranked against each rider's own benchmark for the segment, so ranked riders only · {% elif event.type != 'qualifier' %}Fastest raw times · {% endif %}segment names link to Strava, where you can see raw times (filter the leaderboard to the club)</p>
+			<p class="section-note">{% if event.segments[0].mode == 'handicap' %}Ranked against each rider's own benchmark for the segment, so ranked riders only · {% elif event.type != 'qualifier' %}Fastest raw times · {% endif %}segment names link to Strava, where you can see ride times (filter the leaderboard to the club)</p>
 		</div>
 		<div class="segments">
 			{%- for seg in event.segments %}
@@ -206,8 +201,8 @@ eleventyComputed:
 	{%- if event.type != 'qualifier' and ranked %}
 	<section class="section explainer">
 		<div>
-			<h3>Adjusted time</h3>
-			<p>Your time on the road, divided by your handicap for a {{ event.route_type }} route. Beat your own prediction by the most and you win, however fast you are.</p>
+			<h3>How it's ranked</h3>
+			<p>Your time on the road is adjusted by your handicap for a {{ event.route_type }} route, and riders are ranked on that. Beat your own prediction by the most and you win, however fast you are. Only places and points are shown.</p>
 		</div>
 		{%- if event.benchmarksUpdated %}
 		<div>

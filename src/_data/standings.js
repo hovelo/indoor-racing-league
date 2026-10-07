@@ -3,7 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const yaml = require('js-yaml');
-const { computeStandings, formatTime } = require('../../lib/model');
+const { computeStandings } = require('../../lib/model');
 const { loadClubs, clubFor } = require('../../lib/clubs');
 const { validateMembers } = require('../../lib/members');
 const { validateLeagues } = require('../../lib/leagues');
@@ -66,14 +66,13 @@ function labels(type, number) {
 	return { label: `Event ${padded}`, num: padded, column: `E${number}` };
 }
 
-// Only these fields of a scored result reach a template. An allowlist, so a raw
-// time added to the model later can't leak onto the public site by accident.
+// Only these fields of a scored result reach a template. An allowlist, so no time
+// (raw or adjusted) can leak onto the public site, now or if the model grows one later.
+// Places (and ties) are already decided by the model from adjusted time.
 const pickResult = (r) => ({
 	member: r.member,
 	display: r.display,
 	place: r.place,
-	adjusted: r.adjusted,
-	adjustedDisplay: r.adjustedDisplay,
 	finishPoints: r.finishPoints,
 	bonus: r.bonus,
 	points: r.points,
@@ -143,10 +142,6 @@ module.exports = function () {
 		const leagueEvents = result.events.map((e) => {
 			const number = e.type === 'event' ? ++eventNumber : null;
 			const results = markTies(e.results.map(pickResult));
-			const leader = results.length ? results[0].adjusted : null;
-			results.forEach((r) => {
-				r.gapDisplay = r.adjusted - leader >= 0.5 ? `+${formatTime(r.adjusted - leader)}` : null;
-			});
 			return {
 				id: e.id,
 				type: e.type,
