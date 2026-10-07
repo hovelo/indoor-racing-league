@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>{% if title %}{{ title }} · {% endif %}{{ site.name }}</title>
+	<meta name="robots" content="noindex, nofollow">
+	<meta name="referrer" content="no-referrer">
+	<meta name="theme-color" content="#14171c">
+	<link rel="icon" href="/images/favicon.svg" type="image/svg+xml">
+	<link rel="stylesheet" href="/css/style.css">
+	{#- No analytics and no links out: the URL carries a personal upload token. -#}
+</head>
+<body>
+	<header class="site-header">
+		<div class="wrap site-header-inner">
+			<span class="brand">
+				<span class="brand-mark" aria-hidden="true">IRL</span>
+				<span class="brand-name">{{ site.name }}</span>
+			</span>
+		</div>
+	</header>
+	<main>
+		{{ content | safe }}
+	</main>
+</body>
+</html>

@@ -2,28 +2,27 @@
 // as a fallback), runs the handicap model and returns template-ready data.
 const fs = require('node:fs');
 const path = require('node:path');
-const yaml = require('js-yaml');
 const { computeStandings, formatTime } = require('../../lib/model');
 const { loadClubs, clubFor } = require('../../lib/clubs');
 const { validateMembers } = require('../../lib/members');
 const { validateLeagues } = require('../../lib/leagues');
-const { usingSample, dir, CLUB_LOGO_DIR, CLUB_LOGO_URL } = require('../../lib/data-dir');
+const { usingSample, dir, CLUB_LOGO_DIR, CLUB_LOGO_URL, SUBMISSIONS_FILE } = require('../../lib/data-dir');
+const { load, loadEvents } = require('../../lib/load-data');
+const { gatherResults } = require('../../lib/sources');
+const yamlSource = require('../../lib/sources/yaml');
+const { submissionsSource } = require('../../lib/sources/submissions');
 
-function load(file) {
-	const p = path.join(dir, file);
-	return fs.existsSync(p) ? yaml.load(fs.readFileSync(p, 'utf8')) || [] : [];
-}
-
-function loadEvents() {
-	const eventsDir = path.join(dir, 'events');
-	if (!fs.existsSync(eventsDir)) {
-		return [];
-	}
-	return fs
-		.readdirSync(eventsDir)
-		.filter((f) => /\.ya?ml$/.test(f))
-		.map((f) => yaml.load(fs.readFileSync(path.join(eventsDir, f), 'utf8')));
-}
+// Where results rows come from. Every source returns rows of the same shape; they're
+// merged (fastest per member, event and segment) before the model sees them.
+// A production build with real data must have the uploads file, so a failed
+// read of the blob store can't silently drop riders' results.
+const SOURCES = [
+	yamlSource,
+	submissionsSource(SUBMISSIONS_FILE, {
+		required: !usingSample && process.env.CONTEXT === 'production',
+		info: (m) => console.log(`[standings] ${m}`),
+	}),
+];
 
 // Event windows are UK Monday–Sunday weeks, so "today" is the date in London, not UTC.
 // IRL_TODAY=YYYY-MM-DD overrides it, for checking statuses locally.
@@ -90,7 +89,7 @@ const pickSegment = (s) => ({
 	results: markTies(s.results.map((r) => ({ member: r.member, display: r.display, place: r.place, points: r.points }))),
 });
 
-module.exports = function () {
+module.exports = async function () {
 	if (usingSample) {
 		// fetch-data.sh refuses to build without the key, but a clone with no leagues.yml
 		// (renamed, or a bad commit) would also land here. Never publish sample data.
@@ -103,7 +102,8 @@ module.exports = function () {
 	const leagues = load('leagues.yml');
 	const members = load('members.yml');
 	const routes = load('routes.yml');
-	const events = loadEvents();
+	const events = await gatherResults(loadEvents(), SOURCES, { leagues, members, routes, dir, usingSample },
+		(w) => console.warn(`[standings] ${w}`));
 
 	const leagueCheck = validateLeagues(leagues);
 	if (leagueCheck.errors.length) {

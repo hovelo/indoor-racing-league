@@ -400,3 +400,12 @@ main:has(> .cta:last-child) + .site-footer { margin-top: 0; }
 @media (min-width: 40rem) {
 	.club-logo-xl { width: 7rem; height: 7rem; }
 }
+
+/* Upload page (/l/{slug}/submit/) */
+.submit-panel { padding: 1.25rem; }
+.submit-panel > :first-child { margin-top: 0; }
+.submit-form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.75rem 1rem; margin-top: 1.5rem; }
+.submit-file { display: grid; gap: 0.375rem; font-weight: 600; }
+.submit-result h2 { margin: 1.75rem 0 0.5rem; }
+.submit-result .notice { margin-top: 1.5rem; }
+.notice-error { border-top-color: var(--climb-fg); }
