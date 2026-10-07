@@ -1,6 +1,8 @@
 # Segment names should match Strava exactly; strava_segment_id makes them link.
 # distance_km and elevation_m are optional, shown on event pages (per lap for lapped routes).
 # start/end are [lat, lon] for the FIT fallback. See "Adding a route" in 06-data-formats.md.
+# length_m is each segment's length in metres (from Strava or VeloViewer); FIT uploads need it
+# to pair a start pass with the right end pass. Leave it null until it's checked.
 - id: watopia-hilly
   platform: zwift
   world: Watopia
@@ -9,9 +11,9 @@
   elevation_m: 109
   info: { name: Zwift Insider, url: "https://zwiftinsider.com/route/hilly-route/" }
   segments:
-    lap: { name: Hilly Loop, strava_segment_id: null, start: null, end: null }
-    kom: { name: Hilly KOM, strava_segment_id: 12109030, start: [-11.63794, 166.95583], end: [-11.64046, 166.95786] }
-    sprint: { name: Sprint Forward, strava_segment_id: 12109305, start: [-11.6491, 166.94939], end: [-11.64724, 166.94925] }
+    lap: { name: Hilly Loop, strava_segment_id: null, start: null, end: null, length_m: null }
+    kom: { name: Hilly KOM, strava_segment_id: 12109030, start: [-11.63794, 166.95583], end: [-11.64046, 166.95786], length_m: null }
+    sprint: { name: Sprint Forward, strava_segment_id: 12109305, start: [-11.6491, 166.94939], end: [-11.64724, 166.94925], length_m: null }
 - id: watopia-figure-8
   platform: zwift
   world: Watopia
@@ -20,10 +22,10 @@
   elevation_m: 254
   info: { name: Zwift Insider, url: "https://zwiftinsider.com/route/figure-8/" }
   segments:
-    lap: { name: Figure 8, strava_segment_id: 12118421, start: [-11.6355, 166.95185], end: [-11.6355, 166.95184] }
-    kom_rev: { name: Hilly KOM Reverse, type: climb, strava_segment_id: 12128029, start: [-11.64229, 166.9518], end: [-11.64049, 166.95793] }
-    kom: { name: Hilly KOM, strava_segment_id: 12109030, start: [-11.63794, 166.95583], end: [-11.64046, 166.95786] }
-    sprint: { name: Sprint Forward, strava_segment_id: 12109305, start: [-11.6491, 166.94939], end: [-11.64724, 166.94925] }
+    lap: { name: Figure 8, strava_segment_id: 12118421, start: [-11.6355, 166.95185], end: [-11.6355, 166.95184], length_m: null }
+    kom_rev: { name: Hilly KOM Reverse, type: climb, strava_segment_id: 12128029, start: [-11.64229, 166.9518], end: [-11.64049, 166.95793], length_m: null }
+    kom: { name: Hilly KOM, strava_segment_id: 12109030, start: [-11.63794, 166.95583], end: [-11.64046, 166.95786], length_m: null }
+    sprint: { name: Sprint Forward, strava_segment_id: 12109305, start: [-11.6491, 166.94939], end: [-11.64724, 166.94925], length_m: null }
 - id: watopia-big-flat-8
   platform: zwift
   world: Watopia
@@ -32,4 +34,4 @@
   elevation_m: 103
   info: { name: Zwift Insider, url: "https://zwiftinsider.com/route/big-flat-8/" }
   segments:
-    lap: { name: Big Flat 8 (full route), strava_segment_id: null }
+    lap: { name: Big Flat 8 (full route), strava_segment_id: null, length_m: null }

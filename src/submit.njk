@@ -1,0 +1,103 @@
+---
+layout: bare.njk
+pagination:
+  data: standings.leagues
+  size: 1
+  alias: league
+  addAllPagesToCollections: false
+permalink: "/l/{{ league.slug }}/submit/"
+eleventyExcludeFromCollections: true
+eleventyComputed:
+  title: "Upload a ride"
+---
+{#- Personal upload page. The member and token come from the link (?m=…&t=…); the
+    page itself carries no member list. Times shown here are the rider's own, from
+    their own file, and only ever go to them. -#}
+<section class="hero">
+	<div class="wrap">
+		<p class="kicker">{{ league.name }}</p>
+		<h1 class="display">Upload a ride</h1>
+	</div>
+</section>
+<div class="wrap section submit">
+	<div class="panel submit-panel">
+		<p class="lede">Upload the FIT file Zwift saved for your ride. It's timed on the event route, and your result appears in the standings shortly after.</p>
+		<p>Zwift saves one for every ride in <code>Documents/Zwift/Activities</code>. Upload each ride once; your fastest effort counts.</p>
+		<p class="submit-bad-link" hidden>This page needs your personal upload link. Use the whole link you were sent.</p>
+		<form class="submit-form" method="post" action="/api/submit" enctype="multipart/form-data" hidden>
+			<input type="hidden" name="league" value="{{ league.slug }}">
+			<input type="hidden" name="m">
+			<input type="hidden" name="t">
+			<label class="submit-file">
+				<span>FIT file</span>
+				<input type="file" name="file" accept=".fit" required>
+			</label>
+			<button class="button button-accent" type="submit">Upload</button>
+		</form>
+		<div class="submit-result" aria-live="polite"></div>
+	</div>
+</div>
+<script>
+(() => {
+	const MAX = 5 * 1024 * 1024;
+	const params = new URLSearchParams(location.search);
+	const form = document.querySelector('.submit-form');
+	const out = document.querySelector('.submit-result');
+	const m = params.get('m');
+	const t = params.get('t');
+	if (!m || !t) {
+		document.querySelector('.submit-bad-link').hidden = false;
+		return;
+	}
+	form.elements.m.value = m;
+	form.elements.t.value = t;
+	form.hidden = false;
+
+	const el = (tag, text, cls) => {
+		const e = document.createElement(tag);
+		if (text !== undefined) e.textContent = text;
+		if (cls) e.className = cls;
+		return e;
+	};
+	const message = (text, cls) => out.replaceChildren(el('p', text, `notice ${cls || ''}`));
+
+	form.addEventListener('submit', async (ev) => {
+		ev.preventDefault();
+		const file = form.elements.file.files[0];
+		if (!file) return message('Choose a .fit file first.');
+		if (file.size > MAX) return message('That file is too big. FIT files from Zwift are well under 5 MB.');
+		const button = form.querySelector('button');
+		button.disabled = true;
+		message('Uploading and timing your ride…');
+		try {
+			const res = await fetch(form.action, { method: 'POST', body: new FormData(form) });
+			const data = await res.json().catch(() => ({ ok: false, error: 'Something went wrong. Try again.' }));
+			if (!data.ok) return message(data.error, 'notice-error');
+			const nodes = [];
+			for (const e of data.events) {
+				nodes.push(el('h2', `${e.type === 'challenge' ? 'Challenge' : 'Event'}: ${e.route}`));
+				const table = el('table', undefined, 'table');
+				const head = table.createTHead().insertRow();
+				['Segment', 'Your time', ''].forEach((h) => head.appendChild(el('th', h)));
+				const body = table.createTBody();
+				for (const x of e.times) {
+					const row = body.insertRow();
+					row.appendChild(el('td', x.name));
+					row.appendChild(el('td', x.time, 'mono'));
+					row.appendChild(el('td', x.improved
+						? (x.previous ? `New best (was ${x.previous})` : 'Saved')
+						: `Your best is still ${x.previous}`));
+				}
+				nodes.push(table);
+			}
+			nodes.push(el('p', `Ride date: ${data.date}. ${data.rebuild ? 'The standings will update in a few minutes.' : ''}`));
+			out.replaceChildren(...nodes);
+			form.reset();
+		} catch {
+			message('The upload didn\'t go through. Check your connection and try again.', 'notice-error');
+		} finally {
+			button.disabled = false;
+		}
+	});
+})();
+</script>

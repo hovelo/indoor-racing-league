@@ -2,3 +2,7 @@ node_modules/
 _site/
 src/_data/league/
 .DS_Store
+.submissions/
+netlify/functions/submit/submit-config.generated.mjs
+test/fixtures/*.fit
+.netlify/

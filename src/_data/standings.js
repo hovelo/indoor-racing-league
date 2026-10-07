@@ -2,34 +2,27 @@
 // as a fallback), runs the handicap model and returns template-ready data.
 const fs = require('node:fs');
 const path = require('node:path');
-const yaml = require('js-yaml');
 const { computeStandings, formatTime } = require('../../lib/model');
 const { loadClubs, clubFor } = require('../../lib/clubs');
 const { validateMembers } = require('../../lib/members');
 const { validateLeagues } = require('../../lib/leagues');
-const { usingSample, dir, CLUB_LOGO_DIR, CLUB_LOGO_URL } = require('../../lib/data-dir');
+const { usingSample, dir, CLUB_LOGO_DIR, CLUB_LOGO_URL, SUBMISSIONS_FILE } = require('../../lib/data-dir');
+const { load, loadEvents } = require('../../lib/load-data');
 const { gatherResults } = require('../../lib/sources');
 const yamlSource = require('../../lib/sources/yaml');
+const { submissionsSource } = require('../../lib/sources/submissions');
 
 // Where results rows come from. Every source returns rows of the same shape; they're
 // merged (fastest per member, event and segment) before the model sees them.
-const SOURCES = [yamlSource];
-
-function load(file) {
-	const p = path.join(dir, file);
-	return fs.existsSync(p) ? yaml.load(fs.readFileSync(p, 'utf8')) || [] : [];
-}
-
-function loadEvents() {
-	const eventsDir = path.join(dir, 'events');
-	if (!fs.existsSync(eventsDir)) {
-		return [];
-	}
-	return fs
-		.readdirSync(eventsDir)
-		.filter((f) => /\.ya?ml$/.test(f))
-		.map((f) => yaml.load(fs.readFileSync(path.join(eventsDir, f), 'utf8')));
-}
+// A production build with real data must have the uploads file, so a failed
+// read of the blob store can't silently drop riders' results.
+const SOURCES = [
+	yamlSource,
+	submissionsSource(SUBMISSIONS_FILE, {
+		required: !usingSample && process.env.CONTEXT === 'production',
+		info: (m) => console.log(`[standings] ${m}`),
+	}),
+];
 
 // Event windows are UK Monday–Sunday weeks, so "today" is the date in London, not UTC.
 // IRL_TODAY=YYYY-MM-DD overrides it, for checking statuses locally.

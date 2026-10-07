@@ -1,7 +1,17 @@
 [build]
-  # Clones the private data repo with a read-only deploy key (see scripts/fetch-data.sh), then builds.
-  command = "bash scripts/fetch-data.sh && npm test && npx @11ty/eleventy"
+  # Clones the private data repo with a read-only deploy key (see scripts/fetch-data.sh),
+  # writes the upload function's league config, then tests and builds.
+  command = "bash scripts/fetch-data.sh && node scripts/build-submit-config.js && npm test && npx @11ty/eleventy"
   publish = "_site"
 
 [build.environment]
   NODE_VERSION = "22"
+
+[functions]
+  # Bundles the function's imports (lib/, the generated config, fit-file-parser).
+  node_bundler = "esbuild"
+
+# Reads FIT upload results from the `submissions` blob store before the build
+# (Blobs credentials are only set automatically in plugins and functions).
+[[plugins]]
+  package = "./netlify/plugins/submissions"
