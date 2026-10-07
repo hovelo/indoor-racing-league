@@ -11,6 +11,11 @@
 <span class="place-num{% if r.place <= 3 %} place-{{ r.place }}{% endif %}">{% if r.tied %}={% endif %}{{ r.place }}</span>
 {%- endmacro -%}
 
+{#- vs prediction, e.g. "−1.9%". Beating the prediction (negative) is highlighted. -#}
+{%- macro vs(r) -%}
+{% if r.vsDisplay %}<span class="vs{% if r.vsPrediction < 0 %} vs-beat{% endif %}" title="Against their prediction: negative is faster">{{ r.vsDisplay }}</span>{% else %}<span class="dim">&ndash;</span>{% endif %}
+{%- endmacro -%}
+
 {%- macro routeName(e) -%}
 {{ e.route.name }}{% if e.laps and e.laps > 1 %} &times; {{ e.laps }}{% endif %}
 {%- endmacro -%}

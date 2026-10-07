@@ -250,6 +250,13 @@ abbr[title] { text-decoration: none; }
 .segment-rider { flex: 1; font-weight: 600; }
 .segment-list .mono { font-weight: 700; }
 
+/* vs prediction: beating it gets a lime chip (ink on lime; lime text alone fails on white) */
+.vs { display: inline-block; padding: 0.125rem 0.3125rem; font: 600 0.875rem/1.2 var(--mono); font-variant-numeric: tabular-nums; color: var(--muted); white-space: nowrap; }
+.vs-beat { background: var(--accent); color: var(--ink); }
+.podium-vs { margin-top: 0.5rem; }
+.podium-card.is-first .vs { color: var(--ink-2); }
+.podium-card.is-first .vs-beat { background: var(--ink); color: var(--accent); }
+
 /* Three-up explainer */
 .explainer { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1.5rem; padding-top: 1.5rem; border-top: 2px solid var(--ink); }
 .explainer h3 { font-size: 1.375rem; }

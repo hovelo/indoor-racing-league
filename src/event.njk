@@ -12,7 +12,7 @@ eleventyComputed:
   title: "{{ event.label }}: {{ event.route.name }}"
   homeHref: "/l/{{ event.league.slug }}/"
 ---
-{%- from "macros.njk" import typeBadge, statusBadge, place, routeName, dates, clubLogo, stravaClubButton -%}
+{%- from "macros.njk" import typeBadge, statusBadge, place, vs, routeName, dates, clubLogo, stravaClubButton -%}
 {%- set hasSegments = event.segments | length %}
 {%- set ranked = event.results | length %}
 {%- set riders = ranked + (event.unbenchmarked | length) %}
@@ -112,6 +112,7 @@ eleventyComputed:
 				<span class="mono">+{{ r.points }} pts</span>
 			</div>
 			<div class="podium-name">{{ r.display }}</div>
+			<div class="podium-vs">{{ vs(r) }}</div>
 		</div>
 		{%- endfor %}
 	</section>
@@ -120,7 +121,7 @@ eleventyComputed:
 	<section class="section">
 		<div class="section-head">
 			<h2>Results</h2>
-			<p class="section-note">Ranked on time against each rider's prediction · times aren't published{% if event.scoreSegment and event.scoreSegment.url %}; ride times are on <a href="{{ event.scoreSegment.url }}" rel="noopener">Strava</a>{% endif %}</p>
+			<p class="section-note">Ranked on time against each rider's own prediction: &minus;2.0% means 2% faster than predicted · times aren't published{% if event.scoreSegment and event.scoreSegment.url %}; ride times are on <a href="{{ event.scoreSegment.url }}" rel="noopener">Strava</a>{% endif %}</p>
 		</div>
 		<div class="panel table-scroll">
 			{%- if ranked %}
@@ -129,6 +130,7 @@ eleventyComputed:
 					<tr>
 						<th class="col-place" scope="col">Pos</th>
 						<th scope="col">Rider</th>
+						<th class="num" scope="col"><abbr title="Against their prediction: negative is faster">vs pred.</abbr></th>
 						<th class="num hide-sm" scope="col">Place</th>
 						<th class="num hide-sm" scope="col">Finish</th>
 						{%- if hasSegments %}<th class="num hide-sm" scope="col">Bonus</th>{% endif %}
@@ -140,6 +142,7 @@ eleventyComputed:
 					<tr>
 						<td class="col-place">{{ place(r) }}</td>
 						<td class="rider">{{ r.display }}</td>
+						<td class="num">{{ vs(r) }}</td>
 						<td class="num hide-sm">{{ r.finishPoints }}</td>
 						<td class="num hide-sm">{{ event.participation }}</td>
 						{%- if hasSegments %}<td class="num hide-sm">{% if r.bonus %}{{ r.bonus }}{% else %}<span class="dim">&ndash;</span>{% endif %}</td>{% endif %}
@@ -168,7 +171,7 @@ eleventyComputed:
 	<section class="section">
 		<div class="section-head">
 			<h2>Bonus segments</h2>
-			<p class="section-note">{% if event.segments[0].mode == 'handicap' %}Ranked against each rider's own benchmark for the segment, so ranked riders only · {% elif event.type != 'qualifier' %}Fastest raw times · {% endif %}segment names link to Strava, where you can see ride times (filter the leaderboard to the club)</p>
+			<p class="section-note">{% if event.segments[0].mode == 'handicap' %}Ranked against each rider's own prediction for the segment, so ranked riders only · {% elif event.type != 'qualifier' %}Fastest raw times · {% endif %}segment names link to Strava, where you can see ride times (filter the leaderboard to the club)</p>
 		</div>
 		<div class="segments">
 			{%- for seg in event.segments %}
@@ -184,6 +187,7 @@ eleventyComputed:
 					<li>
 						<span class="segment-place">{% if r.tied %}={% endif %}{{ r.place }}</span>
 						<span class="segment-rider">{{ r.display }}</span>
+						{%- if seg.mode == 'handicap' %}{{ vs(r) }}{% endif %}
 						<span class="mono">+{{ r.points }}</span>
 					</li>
 					{%- endif %}
@@ -202,7 +206,7 @@ eleventyComputed:
 	<section class="section explainer">
 		<div>
 			<h3>How it's ranked</h3>
-			<p>Your time on the road is adjusted by your handicap for a {{ event.route_type }} route, and riders are ranked on that. Beat your own prediction by the most and you win, however fast you are. Only places and points are shown.</p>
+			<p>Your benchmark predicts your time on a {{ event.route_type }} route, against everyone else who rode it. The figure is how far you were from that prediction: &minus;2.0% is 2% faster than predicted. Beat your prediction by the most and you win, however fast you are. Riders on the same figure share the place.</p>
 		</div>
 		{%- if event.benchmarksUpdated %}
 		<div>
