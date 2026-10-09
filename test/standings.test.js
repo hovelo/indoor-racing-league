@@ -107,14 +107,16 @@ test('worked example', () => {
 test('window and duplicates', () => {
 	const ev = structuredClone(events);
 	ev[1].results.push(
-		{ member: 'a', segment: 'lap', time: '24:50', date: '2026-10-27' }, // faster, kept
+		{ member: 'a', segment: 'lap', time: '24:50', date: '2026-10-27' }, // a second, faster ride: scored
+		{ member: 'c', segment: 'lap', time: '30:10', date: '2026-10-20' }, // same ride, two rows: fastest kept
 		{ member: 'b', segment: 'lap', time: '20:00', date: '2026-11-05' } // outside window
 	);
 	const out = computeStandings(league, members, routes, ev);
-	const a = out.events[1].results.find((r) => r.member === 'a');
-	assert.equal(a._raw, 1490);
+	const byId = Object.fromEntries(out.events[1].results.map((r) => [r.member, r]));
+	assert.equal(byId.a._raw, 1490);
+	assert.equal(byId.c._raw, 1810);
 	assert.ok(out.warnings.some((w) => w.includes('outside window')));
-	assert.ok(out.warnings.some((w) => w.includes('duplicate')));
+	assert.equal(out.warnings.filter((w) => w.includes('duplicate')).length, 1);
 });
 
 test('unbenchmarked riders get participation points only', () => {
@@ -509,7 +511,7 @@ test('the qualifier bonus is raw whatever the mode', () => {
 test('unbenchmarked riders: no bonus in handicap mode but count towards the segment median; bonus in raw mode', () => {
 	// D fastest on the road sprint, but unbenchmarked.
 	const ev = withSprint({ a: '0:30', b: '0:29', c: '0:33', d: '0:25' });
-	ev[1].results.push({ member: 'd', segment: 'lap', time: '26:00', date: '2026-10-21' });
+	ev[1].results.push({ member: 'd', segment: 'lap', time: '26:00', date: '2026-10-20' }); // same ride as the sprint
 
 	const h = computeStandings(withD.league, withD.members, routes, ev);
 	const hs = h.events[1].segments[0];
@@ -767,4 +769,103 @@ test('raw-mode bonus segments carry no vs prediction', () => {
 	const out = computeStandings({ ...league, settings: { segment_bonus_mode: 'raw' } }, members, routes, withSprint());
 	assert.ok(out.events[1].segments[0].results.every((x) => !('vsDisplay' in x)));
 	assert.ok(out.events[0].segments.every((s) => s.results.every((x) => !('vsDisplay' in x))));
+});
+
+// --- Scoring attempt: every segment time comes from the rider's fastest ride ---
+
+const attempt = (member, activity, date, times) => ({ member, activity, date, times });
+
+/** e1 in the attempts format, sprint bonus. Bob is rider B. */
+const attemptsEvent = (results, attempts) => {
+	const ev = structuredClone(events);
+	Object.assign(ev[1], { bonus_segments: ['sprint'], results, attempts });
+	return ev;
+};
+const baseAttempts = [
+	attempt('a', 101, '2026-10-20', { lap: '25:00', sprint: '0:30' }),
+	attempt('b', 201, '2026-10-20', { lap: '27:20', sprint: '0:29' }),
+	attempt('c', 301, '2026-10-20', { lap: '30:30', sprint: '0:33' }),
+];
+
+test('the attempts format scores the same as one row per segment', () => {
+	const flat = computeStandings(league, members, routes, withSprint());
+	const nested = computeStandings(league, members, routes, attemptsEvent(baseAttempts, []));
+	assert.deepEqual(nested.events[1].results, flat.events[1].results);
+	assert.deepEqual(nested.events[1].segments, flat.events[1].segments);
+	assert.deepEqual(nested.benchmarks, flat.benchmarks);
+	assert.deepEqual(nested.warnings, flat.warnings);
+});
+
+test("a slow ride's sprint never pairs with a fast ride's lap", () => {
+	// Bob rides slowly in week 1 and smashes the sprint, then rides fast in week 2.
+	const slow = attempt('b', 202, '2026-10-21', { lap: '29:00', sprint: '0:20' });
+	const ev = attemptsEvent(baseAttempts, [slow]);
+	const out = computeStandings(league, members, routes, ev);
+	const e1 = out.events[1];
+	// Scored on the fast ride (27:20) with its own 29 s sprint: identical to Bob never riding the slow one.
+	const without = computeStandings(league, members, routes, attemptsEvent(baseAttempts, []));
+	assert.deepEqual(e1.results, without.events[1].results);
+	assert.deepEqual(e1.segments, without.events[1].segments);
+	assert.deepEqual(out.benchmarks, without.benchmarks);
+	assert.ok(!out.warnings.some((w) => w.includes('move it to results')));
+
+	// The old merge would have paired the 27:20 lap with the 20 s sprint. Same data, flat rows by date:
+	const flat = structuredClone(withSprint());
+	flat[1].results.push(
+		{ member: 'b', segment: 'lap', time: '29:00', date: '2026-10-21' },
+		{ member: 'b', segment: 'sprint', time: '0:20', date: '2026-10-21' }
+	);
+	const flatOut = computeStandings(league, members, routes, flat);
+	assert.deepEqual(flatOut.events[1].segments, without.events[1].segments);
+});
+
+test('two rides on the same day are told apart by activity ID', () => {
+	const sameDay = attempt('b', 203, '2026-10-20', { lap: '29:00', sprint: '0:20' });
+	const out = computeStandings(league, members, routes, attemptsEvent(baseAttempts, [sameDay]));
+	const without = computeStandings(league, members, routes, attemptsEvent(baseAttempts, []));
+	assert.deepEqual(out.events[1].segments, without.events[1].segments);
+});
+
+test('the fastest ride is scored wherever it is filed, with a warning if it is in attempts', () => {
+	const fast = attempt('b', 204, '2026-10-27', { lap: '26:00', sprint: '0:31' });
+	const out = computeStandings(league, members, routes, attemptsEvent(baseAttempts, [fast]));
+	const b = out.events[1].results.find((r) => r.member === 'b');
+	assert.equal(b._raw, 1560);
+	assert.ok(out.warnings.some((w) => w.includes('b') && w.includes('activity 204') && w.includes('move it to results')));
+
+	// Two rides in results: the faster still scores, and the split warns.
+	const both = computeStandings(league, members, routes, attemptsEvent([...baseAttempts, fast], [attempt('a', 102, '2026-10-22', { lap: '26:00', sprint: '0:25' })]));
+	assert.equal(both.events[1].results.find((r) => r.member === 'b')._raw, 1560);
+	assert.ok(both.warnings.some((w) => w.includes('b has 2 rides in results')));
+});
+
+test('an excluded ride is never scored, even when it is the fastest', () => {
+	const group = { ...attempt('b', 205, '2026-10-22', { lap: '20:00', sprint: '0:20' }), excluded: true, reason: 'Group ride' };
+	const out = computeStandings(league, members, routes, attemptsEvent(baseAttempts, [group]));
+	assert.equal(out.events[1].results.find((r) => r.member === 'b')._raw, 1640);
+	assert.ok(!out.warnings.some((w) => w.includes('move it to results')));
+});
+
+test('an attempt without an activity ID warns', () => {
+	const noId = [...baseAttempts.slice(0, 2), { member: 'c', date: '2026-10-20', times: { lap: '30:30', sprint: '0:33' } }];
+	const out = computeStandings(league, members, routes, attemptsEvent(noId, []));
+	assert.ok(out.warnings.some((w) => w.includes('c 2026-10-20 has no activity ID')));
+	assert.equal(out.events[1].results.find((r) => r.member === 'c')._raw, 1830);
+});
+
+test('qualifier: ratios and bonus both come from the fastest ride, not the best of each segment', () => {
+	const ev = structuredClone(events);
+	ev[0].results = [
+		attempt('a', 1, '2026-10-07', { lap: 900, kom: 150, sprint: 30 }),
+		attempt('b', 2, '2026-10-07', { lap: 960, kom: 170, sprint: 32 }),
+		attempt('c', 3, '2026-10-07', { lap: 1080, kom: 200, sprint: 36 }),
+	];
+	const base = computeStandings(league, members, routes, ev);
+	// C adds a slow ride with a big KOM and sprint: it changes nothing.
+	ev[0].attempts = [attempt('c', 4, '2026-10-08', { lap: 1200, kom: 140, sprint: 25 })];
+	const out = computeStandings(league, members, routes, ev);
+	assert.deepEqual(out.benchmarks, base.benchmarks);
+	assert.deepEqual(out.medians, base.medians);
+	assert.deepEqual(out.events[0].results, base.events[0].results);
+	assert.deepEqual(out.events[0].results.find((r) => r.member === 'c').points, 4);
 });
