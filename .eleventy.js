@@ -1,5 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
+const crypto = require('node:crypto');
 const { dir: dataDir, CLUB_LOGO_DIR, CLUB_LOGO_URL } = require('./lib/data-dir');
 
 module.exports = function (eleventyConfig) {
@@ -37,6 +38,13 @@ module.exports = function (eleventyConfig) {
 			return url;
 		}
 	});
+	// Content hash for cache-busting a file in src/, e.g. /css/style.css?v=1a2b3c4d.
+	// Without it, browsers can keep an old stylesheet alongside new HTML.
+	eleventyConfig.addFilter('hash', (file) => crypto
+		.createHash('sha256')
+		.update(fs.readFileSync(path.join(__dirname, 'src', file)))
+		.digest('hex')
+		.slice(0, 8));
 	eleventyConfig.addFilter('percent', (x) => `${Math.round(x * 100)}%`);
 	eleventyConfig.addFilter('ordinal', (n) => {
 		const s = ['th', 'st', 'nd', 'rd'];
