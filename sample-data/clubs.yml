@@ -3,5 +3,6 @@
   name: Sample CC
   logo: sample-cc.svg        # file in clubs/, or a full https:// URL
   strava: sample-cc          # Strava club slug or ID, or the full club URL
+  strava_id: 123456          # numeric Strava club ID: filters segment leaderboard links to the club
   url: https://example.com/  # optional: the club's own site
   description: A made-up club for working on the site.  # optional, shown on the club page

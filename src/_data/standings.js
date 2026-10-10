@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const yaml = require('js-yaml');
 const { computeStandings } = require('../../lib/model');
-const { loadClubs, clubFor } = require('../../lib/clubs');
+const { loadClubs, clubFor, clubSegmentUrl } = require('../../lib/clubs');
 const { validateMembers } = require('../../lib/members');
 const { validateLeagues } = require('../../lib/leagues');
 const { usingSample, dir, CLUB_LOGO_DIR, CLUB_LOGO_URL } = require('../../lib/data-dir');
@@ -159,7 +159,7 @@ module.exports = function () {
 				number,
 				...labels(e.type, number),
 				route: e.route,
-				scoreSegment: e.scoreSegment,
+				scoreSegment: e.scoreSegment && { ...e.scoreSegment, url: clubSegmentUrl(e.scoreSegment.url, club) },
 				laps: e.laps,
 				route_type: e.route_type,
 				window: e.window,
@@ -174,7 +174,7 @@ module.exports = function () {
 				weights: e.route_type ? result.weights[e.route_type] || null : null,
 				results,
 				unbenchmarked: (e.unbenchmarked || []).map(pickUnbenchmarked),
-				segments: e.segments.map(pickSegment),
+				segments: e.segments.map(pickSegment).map((s) => ({ ...s, url: clubSegmentUrl(s.url, club) })),
 			};
 		});
 
