@@ -44,10 +44,10 @@ eleventyComputed:
 			{%- if (event.route.info and event.route.info.url) or (event.scoreSegment and event.scoreSegment.url) %}
 			<span class="hero-links">
 				{%- if event.scoreSegment and event.scoreSegment.url %}
-				<a href="{{ event.scoreSegment.url }}" rel="noopener">{{ event.scoreSegment.name }} on Strava</a>
+				<a href="{{ event.scoreSegment.url }}" rel="noopener">{{ event.scoreSegment.name }} on Strava <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg></a>
 				{%- endif %}
 				{%- if event.route.info and event.route.info.url %}
-				<a href="{{ event.route.info.url }}" rel="noopener">Route map and profile on {{ event.route.info.name or 'the route guide' }}</a>
+				<a href="{{ event.route.info.url }}" rel="noopener">Route map and profile on {{ event.route.info.name or 'the route guide' }} <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg></a>
 				{%- endif %}
 			</span>
 			{%- endif %}
